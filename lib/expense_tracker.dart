@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'Expense_modal.dart';
-import 'widget/ExpensePieChart.dart';
+import 'expense_modal.dart';
+import 'widget/expense_pie_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ResponsiveExpenseTracker extends StatefulWidget {
@@ -41,7 +41,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   List<Expense> _expense = [];
   String _currency = '৳';
   double _budgetLimit = 2000.0;
-  double totall_expanse = 0.0;
+  double totalExpense = 0.0;
   String _selectedFilter = 'All';
   String _selectedSort = 'Newest';
 
@@ -63,7 +63,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
       if (expensesString != null) {
         List<dynamic> jsonList = jsonDecode(expensesString);
         _expense = jsonList.map((json) => Expense.fromJson(json)).toList();
-        totall_expanse = _expense.fold(0, (sum, item) => sum + item.amount);
+        totalExpense = _expense.fold(0, (sum, item) => sum + item.amount);
       }
     });
   }
@@ -368,16 +368,16 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   void _addExpense(String title, double amount, DateTime date, String category) {
     setState(() {
       _expense.add(Expense(title: title, amount: amount, date: date, category: category));
-      totall_expanse += amount;
+      totalExpense += amount;
       _saveExpenses();
     });
   }
 
   void _editExpense(int index, String title, double amount, DateTime date, String category) {
     setState(() {
-      totall_expanse -= _expense[index].amount;
+      totalExpense -= _expense[index].amount;
       _expense[index] = Expense(title: title, amount: amount, date: date, category: category);
-      totall_expanse += amount;
+      totalExpense += amount;
       _saveExpenses();
     });
   }
@@ -415,7 +415,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
 
   void _deleteExpense(int index) {
     setState(() {
-      totall_expanse -= _expense[index].amount;
+      totalExpense -= _expense[index].amount;
       _expense.removeAt(index);
       _saveExpenses();
     });
@@ -513,7 +513,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$_currency${totall_expanse.toStringAsFixed(2)}',
+                    '$_currency${totalExpense.toStringAsFixed(2)}',
                     style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -784,8 +784,8 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
 
   @override
   Widget build(BuildContext context) {
-    final double remainingBalance = _budgetLimit - totall_expanse;
-    final double progressPercent = _budgetLimit > 0 ? (totall_expanse / _budgetLimit).clamp(0.0, 1.0) : 0.0;
+    final double remainingBalance = _budgetLimit - totalExpense;
+    final double progressPercent = _budgetLimit > 0 ? (totalExpense / _budgetLimit).clamp(0.0, 1.0) : 0.0;
     
     Color progressColor = Colors.teal;
     if (progressPercent >= 0.9) {

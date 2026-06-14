@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../Expense_modal.dart';
+import '../expense_modal.dart';
 
 class ExpensePieChart extends StatelessWidget {
   final List<Expense> expenses;
