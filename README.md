@@ -80,9 +80,9 @@ expense_tracker_app/
 ├── ios/                   # iOS native project structure
 ├── lib/
 │   ├── widget/
-│   │   └── ExpensePieChart.dart  # Donut chart & legend layout
-│   ├── Expense_modal.dart        # Expense data model & JSON serializers
-│   ├── ExpenseTracker.dart       # Main Dashboard UI & modal sheet forms
+│   │   └── expense_pie_chart.dart  # Donut chart & legend layout
+│   ├── expense_modal.dart        # Expense data model & JSON serializers
+│   ├── expense_tracker.dart       # Main Dashboard UI & modal sheet forms
 │   └── main.dart                 # App initialization, themes, & router
 ├── test/
 │   └── widget_test.dart          # Widget smoke test (with mocked SharedPreferences)

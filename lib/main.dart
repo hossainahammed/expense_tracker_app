@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_preview/device_preview.dart';
 
-import 'ExpenseTracker.dart';
+import 'expense_tracker.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
