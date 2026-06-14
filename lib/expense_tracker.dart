@@ -16,7 +16,8 @@ class ResponsiveExpenseTracker extends StatefulWidget {
   });
 
   @override
-  State<ResponsiveExpenseTracker> createState() => _ResponsiveExpenseTrackerState();
+  State<ResponsiveExpenseTracker> createState() =>
+      _ResponsiveExpenseTrackerState();
 }
 
 class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
@@ -70,7 +71,10 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
 
   Future<void> _saveExpenses() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('expenses', jsonEncode(_expense.map((e) => e.toJson()).toList()));
+    await prefs.setString(
+      'expenses',
+      jsonEncode(_expense.map((e) => e.toJson()).toList()),
+    );
   }
 
   Future<void> _saveBudgetLimit(double limit) async {
@@ -85,51 +89,86 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
 
   IconData _getCategoryIcon(String category) {
     switch (category) {
-      case 'Food': return Icons.fastfood_rounded;
-      case 'Groceries': return Icons.local_grocery_store_rounded;
-      case 'Transport': return Icons.directions_car_rounded;
-      case 'Entertainment': return Icons.movie_creation_rounded;
-      case 'Bills': return Icons.receipt_long_rounded;
-      case 'Shopping': return Icons.shopping_bag_rounded;
-      case 'Housing': return Icons.home_rounded;
-      case 'Healthcare': return Icons.medical_services_rounded;
-      case 'Education': return Icons.school_rounded;
-      case 'Insurance': return Icons.health_and_safety_rounded;
-      case 'Savings': return Icons.savings_rounded;
-      case 'Personal Care': return Icons.face_retouching_natural_rounded;
-      case 'Travel': return Icons.flight_takeoff_rounded;
-      case 'Gifts': return Icons.card_giftcard_rounded;
-      case 'Miscellaneous': return Icons.category_rounded;
-      default: return Icons.money_rounded;
+      case 'Food':
+        return Icons.fastfood_rounded;
+      case 'Groceries':
+        return Icons.local_grocery_store_rounded;
+      case 'Transport':
+        return Icons.directions_car_rounded;
+      case 'Entertainment':
+        return Icons.movie_creation_rounded;
+      case 'Bills':
+        return Icons.receipt_long_rounded;
+      case 'Shopping':
+        return Icons.shopping_bag_rounded;
+      case 'Housing':
+        return Icons.home_rounded;
+      case 'Healthcare':
+        return Icons.medical_services_rounded;
+      case 'Education':
+        return Icons.school_rounded;
+      case 'Insurance':
+        return Icons.health_and_safety_rounded;
+      case 'Savings':
+        return Icons.savings_rounded;
+      case 'Personal Care':
+        return Icons.face_retouching_natural_rounded;
+      case 'Travel':
+        return Icons.flight_takeoff_rounded;
+      case 'Gifts':
+        return Icons.card_giftcard_rounded;
+      case 'Miscellaneous':
+        return Icons.category_rounded;
+      default:
+        return Icons.money_rounded;
     }
   }
 
   Color _getCategoryColor(String category) {
     switch (category) {
-      case 'Food': return const Color(0xFFFFA726);
-      case 'Groceries': return const Color(0xFF66BB6A);
-      case 'Transport': return const Color(0xFF42A5F5);
-      case 'Entertainment': return const Color(0xFFAB47BC);
-      case 'Bills': return const Color(0xFFEF5350);
-      case 'Shopping': return const Color(0xFFEC407A);
-      case 'Housing': return const Color(0xFF8D6E63);
-      case 'Healthcare': return const Color(0xFF26A69A);
-      case 'Education': return const Color(0xFF5C6BC0);
-      case 'Insurance': return const Color(0xFF789262);
-      case 'Savings': return const Color(0xFF4DB6AC);
-      case 'Personal Care': return const Color(0xFFFF7043);
-      case 'Travel': return const Color(0xFF29B6F6);
-      case 'Gifts': return const Color(0xFFBA68C8);
-      case 'Miscellaneous': return const Color(0xFF90A4AE);
-      default: return Colors.grey;
+      case 'Food':
+        return const Color(0xFFFFA726);
+      case 'Groceries':
+        return const Color(0xFF66BB6A);
+      case 'Transport':
+        return const Color(0xFF42A5F5);
+      case 'Entertainment':
+        return const Color(0xFFAB47BC);
+      case 'Bills':
+        return const Color(0xFFEF5350);
+      case 'Shopping':
+        return const Color(0xFFEC407A);
+      case 'Housing':
+        return const Color(0xFF8D6E63);
+      case 'Healthcare':
+        return const Color(0xFF26A69A);
+      case 'Education':
+        return const Color(0xFF5C6BC0);
+      case 'Insurance':
+        return const Color(0xFF789262);
+      case 'Savings':
+        return const Color(0xFF4DB6AC);
+      case 'Personal Care':
+        return const Color(0xFFFF7043);
+      case 'Travel':
+        return const Color(0xFF29B6F6);
+      case 'Gifts':
+        return const Color(0xFFBA68C8);
+      case 'Miscellaneous':
+        return const Color(0xFF90A4AE);
+      default:
+        return Colors.grey;
     }
   }
 
   void _showForm({Expense? existingExpense, int? index}) {
     String selectedCategory = existingExpense?.category ?? categories.first;
-    TextEditingController titleController = TextEditingController(text: existingExpense?.title ?? '');
+    TextEditingController titleController = TextEditingController(
+      text: existingExpense?.title ?? '',
+    );
     TextEditingController amountController = TextEditingController(
-        text: existingExpense != null ? existingExpense.amount.toString() : '');
+      text: existingExpense != null ? existingExpense.amount.toString() : '',
+    );
     DateTime expenseDateTime = existingExpense?.date ?? DateTime.now();
 
     showModalBottomSheet(
@@ -166,7 +205,10 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                     ),
                     Text(
                       existingExpense != null ? "Edit Expense" : "Add Expense",
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
@@ -174,34 +216,44 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                       decoration: InputDecoration(
                         labelText: 'Title',
                         prefixIcon: const Icon(Icons.title_rounded),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: amountController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       decoration: InputDecoration(
                         labelText: 'Amount',
                         prefixIcon: const Icon(Icons.attach_money_rounded),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     const Text(
                       'Select Category',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     SizedBox(
                       height: 180,
                       child: GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                          childAspectRatio: 1.1,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 4,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 1.1,
+                            ),
                         itemCount: categories.length,
                         itemBuilder: (context, i) {
                           final cat = categories[i];
@@ -217,11 +269,15 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               decoration: BoxDecoration(
-                                color: isSelected
-                                    ? catColor.withValues(alpha: 0.15)
-                                    : Colors.transparent,
+                                color:
+                                    isSelected
+                                        ? catColor.withValues(alpha: 0.15)
+                                        : Colors.transparent,
                                 border: Border.all(
-                                  color: isSelected ? catColor : Colors.grey.withValues(alpha: 0.2),
+                                  color:
+                                      isSelected
+                                          ? catColor
+                                          : Colors.grey.withValues(alpha: 0.2),
                                   width: isSelected ? 2 : 1,
                                 ),
                                 borderRadius: BorderRadius.circular(12),
@@ -239,8 +295,12 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                                     cat,
                                     style: TextStyle(
                                       fontSize: 10,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                      color: isSelected ? catColor : Colors.grey,
+                                      fontWeight:
+                                          isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                      color:
+                                          isSelected ? catColor : Colors.grey,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -257,7 +317,10 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                       children: [
                         const Text(
                           'Transaction Date',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         TextButton.icon(
                           onPressed: () async {
@@ -274,7 +337,9 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                             }
                           },
                           icon: const Icon(Icons.calendar_month_rounded),
-                          label: Text(DateFormat.yMMMd().format(expenseDateTime)),
+                          label: Text(
+                            DateFormat.yMMMd().format(expenseDateTime),
+                          ),
                         ),
                       ],
                     ),
@@ -287,25 +352,40 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                           if (titleController.text.isNotEmpty &&
                               double.tryParse(amountController.text) != null) {
                             if (existingExpense != null && index != null) {
-                              _editExpense(index, titleController.text, double.parse(amountController.text),
-                                  expenseDateTime, selectedCategory);
+                              _editExpense(
+                                index,
+                                titleController.text,
+                                double.parse(amountController.text),
+                                expenseDateTime,
+                                selectedCategory,
+                              );
                             } else {
-                              _addExpense(titleController.text, double.parse(amountController.text),
-                                  expenseDateTime, selectedCategory);
+                              _addExpense(
+                                titleController.text,
+                                double.parse(amountController.text),
+                                expenseDateTime,
+                                selectedCategory,
+                              );
                             }
                             Navigator.pop(context);
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         child: Text(
-                          existingExpense != null ? "Update Expense" : "Add Expense",
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          existingExpense != null
+                              ? "Update Expense"
+                              : "Add Expense",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -321,13 +401,17 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   }
 
   void _setBudgetLimit() {
-    TextEditingController budgetController = TextEditingController(text: _budgetLimit.toString());
+    TextEditingController budgetController = TextEditingController(
+      text: _budgetLimit.toString(),
+    );
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text("Set Budget Limit"),
           content: TextField(
             controller: budgetController,
@@ -335,7 +419,9 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
             decoration: InputDecoration(
               labelText: 'Budget Limit',
               prefixIcon: const Icon(Icons.account_balance_wallet_rounded),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
           actions: [
@@ -355,7 +441,9 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: const Text("Set"),
             ),
@@ -365,18 +453,36 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     );
   }
 
-  void _addExpense(String title, double amount, DateTime date, String category) {
+  void _addExpense(
+    String title,
+    double amount,
+    DateTime date,
+    String category,
+  ) {
     setState(() {
-      _expense.add(Expense(title: title, amount: amount, date: date, category: category));
+      _expense.add(
+        Expense(title: title, amount: amount, date: date, category: category),
+      );
       totalExpense += amount;
       _saveExpenses();
     });
   }
 
-  void _editExpense(int index, String title, double amount, DateTime date, String category) {
+  void _editExpense(
+    int index,
+    String title,
+    double amount,
+    DateTime date,
+    String category,
+  ) {
     setState(() {
       totalExpense -= _expense[index].amount;
-      _expense[index] = Expense(title: title, amount: amount, date: date, category: category);
+      _expense[index] = Expense(
+        title: title,
+        amount: amount,
+        date: date,
+        category: category,
+      );
       totalExpense += amount;
       _saveExpenses();
     });
@@ -387,7 +493,9 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text('Confirm Deletion'),
           content: const Text('Are you sure you want to delete this expense?'),
           actions: [
@@ -403,7 +511,9 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: const Text('Delete'),
             ),
@@ -422,9 +532,10 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   }
 
   List<Expense> get _filteredExpenses {
-    List<Expense> filtered = _selectedFilter == 'All'
-        ? _expense
-        : _expense.where((e) => e.category == _selectedFilter).toList();
+    List<Expense> filtered =
+        _selectedFilter == 'All'
+            ? _expense
+            : _expense.where((e) => e.category == _selectedFilter).toList();
 
     if (_selectedSort == 'Newest') {
       filtered.sort((a, b) => b.date.compareTo(a.date));
@@ -434,23 +545,30 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     return filtered;
   }
 
-  Widget _buildBalanceCard(double remainingBalance, double progressPercent, Color progressColor) {
+  Widget _buildBalanceCard(
+    double remainingBalance,
+    double progressPercent,
+    Color progressColor,
+  ) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: widget.isDarkMode
-              ? [const Color(0xFF4F46E5), const Color(0xFF6D28D9)]
-              : [const Color(0xFF6366F1), const Color(0xFF4338CA)],
+          colors:
+              widget.isDarkMode
+                  ? [const Color(0xFF4F46E5), const Color(0xFF6D28D9)]
+                  : [const Color(0xFF6366F1), const Color(0xFF4338CA)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: (widget.isDarkMode ? const Color(0xFF4F46E5) : const Color(0xFF6366F1))
+            color: (widget.isDarkMode
+                    ? const Color(0xFF4F46E5)
+                    : const Color(0xFF6366F1))
                 .withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
@@ -473,18 +591,29 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
               ),
               if (remainingBalance < 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.redAccent,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.warning_rounded, color: Colors.white, size: 12),
+                      Icon(
+                        Icons.warning_rounded,
+                        color: Colors.white,
+                        size: 12,
+                      ),
                       SizedBox(width: 4),
                       Text(
                         "Limit Exceeded",
-                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -509,12 +638,19 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                 children: [
                   Text(
                     "Total Spent",
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$_currency${totalExpense.toStringAsFixed(2)}',
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -523,12 +659,19 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                 children: [
                   Text(
                     "Total Budget",
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$_currency${_budgetLimit.toStringAsFixed(2)}',
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -558,30 +701,44 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: widget.isDarkMode
-              ? const Color(0x7F334155)
-              : const Color(0xFFE2E8F0),
+          color:
+              widget.isDarkMode
+                  ? const Color(0x7F334155)
+                  : const Color(0xFFE2E8F0),
         ),
       ),
-      child: _expense.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.pie_chart_outline_rounded, size: 40, color: Colors.grey.withValues(alpha: 0.5)),
-                  const SizedBox(height: 8),
-                  const Text("No expense data recorded", style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            )
-          : ExpensePieChart(expenses: _expense, currency: _currency),
+      child:
+          _expense.isEmpty
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.pie_chart_outline_rounded,
+                      size: 40,
+                      color: Colors.grey.withValues(alpha: 0.5),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "No expense data recorded",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              )
+              : ExpensePieChart(expenses: _expense, currency: _currency),
     );
   }
 
   Widget _buildFilterAndSortRow() {
     final isDarkMode = widget.isDarkMode;
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 12.0, bottom: 4.0),
+      padding: const EdgeInsets.only(
+        left: 16.0,
+        right: 16.0,
+        top: 12.0,
+        bottom: 4.0,
+      ),
       child: Row(
         children: [
           // Category Filter Dropdown
@@ -592,25 +749,38 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                 color: Theme.of(context).cardTheme.color,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isDarkMode
-                      ? const Color(0x7F334155)
-                      : const Color(0xFFE2E8F0),
+                  color:
+                      isDarkMode
+                          ? const Color(0x7F334155)
+                          : const Color(0xFFE2E8F0),
                 ),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _selectedFilter,
                   isExpanded: true,
-                  icon: const Icon(Icons.filter_alt_rounded, size: 18, color: Colors.grey),
+                  icon: const Icon(
+                    Icons.filter_alt_rounded,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
                   dropdownColor: Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(14),
-                  items: ['All', ...categories].map((c) => DropdownMenuItem(
-                    value: c,
-                    child: Text(
-                      c,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                  )).toList(),
+                  items:
+                      ['All', ...categories]
+                          .map(
+                            (c) => DropdownMenuItem(
+                              value: c,
+                              child: Text(
+                                c,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (val) {
                     if (val != null) setState(() => _selectedFilter = val);
                   },
@@ -627,25 +797,38 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                 color: Theme.of(context).cardTheme.color,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isDarkMode
-                      ? const Color(0x7F334155)
-                      : const Color(0xFFE2E8F0),
+                  color:
+                      isDarkMode
+                          ? const Color(0x7F334155)
+                          : const Color(0xFFE2E8F0),
                 ),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _selectedSort,
                   isExpanded: true,
-                  icon: const Icon(Icons.sort_rounded, size: 18, color: Colors.grey),
+                  icon: const Icon(
+                    Icons.sort_rounded,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
                   dropdownColor: Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(14),
-                  items: ['Newest', 'Amount'].map((s) => DropdownMenuItem(
-                    value: s,
-                    child: Text(
-                      s,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                  )).toList(),
+                  items:
+                      ['Newest', 'Amount']
+                          .map(
+                            (s) => DropdownMenuItem(
+                              value: s,
+                              child: Text(
+                                s,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
                   onChanged: (val) {
                     if (val != null) setState(() => _selectedSort = val);
                   },
@@ -665,7 +848,11 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.receipt_long_rounded, size: 48, color: Colors.grey.withValues(alpha: 0.4)),
+            Icon(
+              Icons.receipt_long_rounded,
+              size: 48,
+              color: Colors.grey.withValues(alpha: 0.4),
+            ),
             const SizedBox(height: 12),
             const Text(
               "No matching transactions",
@@ -686,9 +873,10 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: widget.isDarkMode
-              ? const Color(0x4C334155)
-              : const Color(0xFFE2E8F0),
+          color:
+              widget.isDarkMode
+                  ? const Color(0x4C334155)
+                  : const Color(0xFFE2E8F0),
         ),
       ),
       child: ListTile(
@@ -699,11 +887,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
             color: catColor.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            _getCategoryIcon(e.category),
-            color: catColor,
-            size: 24,
-          ),
+          child: Icon(_getCategoryIcon(e.category), color: catColor, size: 24),
         ),
         title: Text(
           e.title,
@@ -721,12 +905,19 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: widget.isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+                  color:
+                      widget.isDarkMode
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   e.category,
-                  style: TextStyle(fontSize: 10, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -745,7 +936,11 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
             ),
             const SizedBox(width: 4),
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded, size: 20, color: Colors.grey),
+              icon: const Icon(
+                Icons.more_vert_rounded,
+                size: 20,
+                color: Colors.grey,
+              ),
               onSelected: (action) {
                 if (action == 'edit') {
                   _showForm(existingExpense: e, index: originalIndex);
@@ -753,28 +948,36 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                   _confirmDeleteExpense(originalIndex);
                 }
               },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit_rounded, size: 18),
-                      SizedBox(width: 8),
-                      Text('Edit'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_rounded, size: 18, color: Colors.redAccent),
-                      SizedBox(width: 8),
-                      Text('Delete', style: TextStyle(color: Colors.redAccent)),
-                    ],
-                  ),
-                ),
-              ],
+              itemBuilder:
+                  (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_rounded, size: 18),
+                          SizedBox(width: 8),
+                          Text('Edit'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_rounded,
+                            size: 18,
+                            color: Colors.redAccent,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.redAccent),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
             ),
           ],
         ),
@@ -785,8 +988,9 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   @override
   Widget build(BuildContext context) {
     final double remainingBalance = _budgetLimit - totalExpense;
-    final double progressPercent = _budgetLimit > 0 ? (totalExpense / _budgetLimit).clamp(0.0, 1.0) : 0.0;
-    
+    final double progressPercent =
+        _budgetLimit > 0 ? (totalExpense / _budgetLimit).clamp(0.0, 1.0) : 0.0;
+
     Color progressColor = Colors.teal;
     if (progressPercent >= 0.9) {
       progressColor = Colors.redAccent;
@@ -803,7 +1007,11 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         ),
         actions: [
           IconButton(
-            icon: Icon(widget.isDarkMode ? Icons.light_mode_rounded : Icons.dark_mode_rounded),
+            icon: Icon(
+              widget.isDarkMode
+                  ? Icons.light_mode_rounded
+                  : Icons.dark_mode_rounded,
+            ),
             onPressed: () => widget.onThemeChanged(!widget.isDarkMode),
             tooltip: 'Toggle Theme',
           ),
@@ -822,9 +1030,11 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
               setState(() => _currency = value);
               await _saveCurrency(value);
             },
-            itemBuilder: (context) => ['৳', '\$', '€', '₹', '£']
-                .map((c) => PopupMenuItem(value: c, child: Text(c)))
-                .toList(),
+            itemBuilder:
+                (context) =>
+                    ['৳', '\$', '€', '₹', '£']
+                        .map((c) => PopupMenuItem(value: c, child: Text(c)))
+                        .toList(),
           ),
           const SizedBox(width: 8),
         ],
@@ -834,27 +1044,35 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),
-        label: const Text("Add Expense", style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text(
+          "Add Expense",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             // 1. Compact Dropdown Filters Row (Placed FIRST, before balance card)
-            SliverToBoxAdapter(
-              child: _buildFilterAndSortRow(),
-            ),
+            SliverToBoxAdapter(child: _buildFilterAndSortRow()),
             // 2. Balance Card
             SliverToBoxAdapter(
-              child: _buildBalanceCard(remainingBalance, progressPercent, progressColor),
+              child: _buildBalanceCard(
+                remainingBalance,
+                progressPercent,
+                progressColor,
+              ),
             ),
             // 3. Chart Card
-            SliverToBoxAdapter(
-              child: _buildChartCard(),
-            ),
+            SliverToBoxAdapter(child: _buildChartCard()),
             // 4. Transactions Title Header
             const SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.only(left: 20.0, right: 20.0, top: 16.0, bottom: 8.0),
+                padding: EdgeInsets.only(
+                  left: 20.0,
+                  right: 20.0,
+                  top: 16.0,
+                  bottom: 8.0,
+                ),
                 child: Text(
                   "Transactions",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -863,23 +1081,16 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
             ),
             // 5. Transactions List or Empty State
             if (_filteredExpenses.isEmpty)
-              SliverToBoxAdapter(
-                child: _buildEmptyState(),
-              )
+              SliverToBoxAdapter(child: _buildEmptyState())
             else
               SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final e = _filteredExpenses[index];
-                    return _buildTransactionItem(e);
-                  },
-                  childCount: _filteredExpenses.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final e = _filteredExpenses[index];
+                  return _buildTransactionItem(e);
+                }, childCount: _filteredExpenses.length),
               ),
             // Bottom padding so items don't get covered by FAB
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 80),
-            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
         ),
       ),
