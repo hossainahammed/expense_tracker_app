@@ -17,7 +17,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool isDarkMode = false;
+  String themeModeSetting = 'system';
 
   @override
   void initState() {
@@ -28,25 +28,31 @@ class _MyAppState extends State<MyApp> {
   Future<void> loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      isDarkMode = prefs.getBool('darkMode') ?? false;
+      themeModeSetting = prefs.getString('themeMode') ?? 'system';
     });
   }
 
-  Future<void> toggleTheme(bool value) async {
+  Future<void> toggleTheme(String value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('darkMode', value);
+    await prefs.setString('themeMode', value);
     setState(() {
-      isDarkMode = value;
+      themeModeSetting = value;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Determine the resolved isDarkMode based on themeModeSetting and physical device state
+    final platformBrightness = MediaQuery.platformBrightnessOf(context);
+    final bool isDark = themeModeSetting == 'system'
+        ? platformBrightness == Brightness.dark
+        : themeModeSetting == 'dark';
+
     return MaterialApp(
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
       debugShowCheckedModeBanner: false,
-      title: 'Expense Tracker',
+      title: 'SpendWise',
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: const Color(0xFFE0F2FE), // Soft Sea Water Blue
@@ -111,9 +117,12 @@ class _MyAppState extends State<MyApp> {
         ),
         useMaterial3: true,
       ),
-      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: themeModeSetting == 'system'
+          ? ThemeMode.system
+          : (themeModeSetting == 'dark' ? ThemeMode.dark : ThemeMode.light),
       home: ResponsiveExpenseTracker(
-        isDarkMode: isDarkMode,
+        isDarkMode: isDark,
+        themeModeSetting: themeModeSetting,
         onThemeChanged: toggleTheme,
       ),
     );

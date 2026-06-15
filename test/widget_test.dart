@@ -15,7 +15,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify that the title is present in the widget tree.
-    expect(find.text('Expense Tracker'), findsOneWidget);
+    expect(find.text('SpendWise'), findsOneWidget);
 
     // Verify that the Available Balance card title is displayed.
     expect(find.text('Available Balance'), findsOneWidget);
