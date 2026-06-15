@@ -7,11 +7,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ResponsiveExpenseTracker extends StatefulWidget {
   final bool isDarkMode;
-  final Function(bool) onThemeChanged;
+  final String themeModeSetting;
+  final Function(String) onThemeChanged;
 
   const ResponsiveExpenseTracker({
     super.key,
     required this.isDarkMode,
+    required this.themeModeSetting,
     required this.onThemeChanged,
   });
 
@@ -45,6 +47,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   double totalExpense = 0.0;
   String _selectedFilter = 'All';
   String _selectedSort = 'Newest';
+  String _selectedDateFilter = 'All Time';
 
   @override
   void initState() {
@@ -532,11 +535,45 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   }
 
   List<Expense> get _filteredExpenses {
-    List<Expense> filtered =
-        _selectedFilter == 'All'
-            ? _expense
-            : _expense.where((e) => e.category == _selectedFilter).toList();
+    List<Expense> filtered = _expense;
 
+    // 1. Filter by category
+    if (_selectedFilter != 'All') {
+      filtered = filtered.where((e) => e.category == _selectedFilter).toList();
+    }
+
+    // 2. Filter by date range
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (_selectedDateFilter == 'Today') {
+      filtered =
+          filtered.where((e) {
+            return e.date.year == now.year &&
+                e.date.month == now.month &&
+                e.date.day == now.day;
+          }).toList();
+    } else if (_selectedDateFilter == 'This Week') {
+      final startOfWeek = today.subtract(Duration(days: now.weekday - 1));
+      filtered =
+          filtered.where((e) {
+            final eDateZero = DateTime(e.date.year, e.date.month, e.date.day);
+            return eDateZero.isAfter(startOfWeek) ||
+                eDateZero.isAtSameMomentAs(startOfWeek);
+          }).toList();
+    } else if (_selectedDateFilter == 'This Month') {
+      filtered =
+          filtered.where((e) {
+            return e.date.year == now.year && e.date.month == now.month;
+          }).toList();
+    } else if (_selectedDateFilter == 'This Year') {
+      filtered =
+          filtered.where((e) {
+            return e.date.year == now.year;
+          }).toList();
+    }
+
+    // 3. Sort (create a new list to avoid side effects on _expense if no filtering occurred)
+    filtered = List.from(filtered);
     if (_selectedSort == 'Newest') {
       filtered.sort((a, b) => b.date.compareTo(a.date));
     } else {
@@ -1002,18 +1039,43 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text(
-          "Expense Tracker",
+          "SpendWise",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
             icon: Icon(
-              widget.isDarkMode
-                  ? Icons.light_mode_rounded
-                  : Icons.dark_mode_rounded,
+              widget.themeModeSetting == 'system'
+                  ? Icons.brightness_auto_rounded
+                  : (widget.isDarkMode
+                      ? Icons.dark_mode_rounded
+                      : Icons.light_mode_rounded),
             ),
-            onPressed: () => widget.onThemeChanged(!widget.isDarkMode),
-            tooltip: 'Toggle Theme',
+            onPressed: () {
+              String nextMode;
+              if (widget.themeModeSetting == 'system') {
+                nextMode = 'light';
+              } else if (widget.themeModeSetting == 'light') {
+                nextMode = 'dark';
+              } else {
+                nextMode = 'system';
+              }
+              widget.onThemeChanged(nextMode);
+
+              ScaffoldMessenger.of(context).clearSnackBars();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    nextMode == 'system'
+                        ? 'System Default'
+                        : (nextMode == 'dark' ? 'Dark Mode' : 'Light Mode'),
+                  ),
+                  duration: const Duration(seconds: 1),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            tooltip: 'Toggle Theme (System / Light / Dark)',
           ),
           IconButton(
             icon: const Icon(Icons.tune_rounded),
@@ -1065,17 +1127,81 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
             // 3. Chart Card
             SliverToBoxAdapter(child: _buildChartCard()),
             // 4. Transactions Title Header
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.only(
+                padding: const EdgeInsets.only(
                   left: 20.0,
                   right: 20.0,
                   top: 16.0,
                   bottom: 8.0,
                 ),
-                child: Text(
-                  "Transactions",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Transactions",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardTheme.color,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              widget.isDarkMode
+                                  ? const Color(0x7F334155)
+                                  : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedDateFilter,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                          icon: const Padding(
+                            padding: EdgeInsets.only(left: 4.0),
+                            child: Icon(
+                              Icons.calendar_today_rounded,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          dropdownColor: Theme.of(context).cardTheme.color,
+                          borderRadius: BorderRadius.circular(12),
+                          items:
+                              [
+                                    'All Time',
+                                    'Today',
+                                    'This Week',
+                                    'This Month',
+                                    'This Year',
+                                  ]
+                                  .map(
+                                    (c) => DropdownMenuItem(
+                                      value: c,
+                                      child: Text(c),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _selectedDateFilter = val);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
