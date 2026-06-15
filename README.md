@@ -1,29 +1,29 @@
-# 🪙 Expense Tracker App
+#  Expense Tracker App
 
 A visually stunning, premium, and fully responsive personal finance application built with Flutter. Keep track of your spending habits, set customized budget goals, analyze category distributions with interactive charts, and enjoy a cohesive day/dark theme configuration.
 
 ---
 
-## ✨ Features
+## Features
 
-* **🎨 Premium Aesthetic & Material 3**: Beautifully designed UI focusing on micro-animations, glassmorphic card stylings, and harmonious color schemes:
-  * **Light Mode**: Warm cream/off-white background (`#F8FAFC`) with Indigo branding accents.
-  * **Dark Mode**: High-contrast midnight-navy background (`#0F172A`) with deep slate-charcoal cards and neon-indigo highlighting.
-* **📊 Visual Budget Dashboard**:
+* Premium Aesthetic & Material 3**: Beautifully designed UI focusing on micro-animations, glassmorphic card stylings, and harmonious color schemes:
+  * Light Mode**: Warm cream/off-white background (`#F8FAFC`) with Indigo branding accents.
+  * Dark Mode**: High-contrast midnight-navy background (`#0F172A`) with deep slate-charcoal cards and neon-indigo highlighting.
+* Visual Budget Dashboard**:
   * Displays Available Balance, Total Spent, and Total Budget Limit.
   * Dynamic, color-coded progress indicators (Teal for safe margins, Orange/Amber for >70% warnings, Red/Warning elements for >90% or over-budget).
-* **📈 Interactive Donut Charts**: Slim, professional category distribution views powered by `fl_chart`, featuring a scrollable indicator legend displaying category values.
-* **🏷️ Compact Head-Level Filters**:
+* Interactive Donut Charts**: Slim, professional category distribution views powered by `fl_chart`, featuring a scrollable indicator legend displaying category values.
+* Compact Head-Level Filters**:
   * Category Filter and Sorting Options sit side-by-side in a single row positioned at the very top of the dashboard.
   * Replaces large UI layouts with compact dropdown selectors to preserve screen space.
-* **📝 Intuitive Bottom Sheets**: Modals with top handle indicators, floating inputs, stateful inline calendar pickers, and a visual touch-selection category grid.
-* **💾 State Persistence**: Automatically persists transactions, selected currencies, custom budget limits, and dark theme choices locally using `shared_preferences`.
-* **📱 Robust Scroll Architecture**: Uses a unified `CustomScrollView` with slivers to ensure smooth scrolling and eliminate layout overflows, even when the software keyboard is open.
-* **🚀 Automated CI/CD**: Seamless verification of code quality, widget test passes, and compilation builds via GitHub Actions.
+* Intuitive Bottom Sheets**: Modals with top handle indicators, floating inputs, stateful inline calendar pickers, and a visual touch-selection category grid.
+* State Persistence**: Automatically persists transactions, selected currencies, custom budget limits, and dark theme choices locally using `shared_preferences`.
+* Robust Scroll Architecture**: Uses a unified `CustomScrollView` with slivers to ensure smooth scrolling and eliminate layout overflows, even when the software keyboard is open.
+* Automated CI/CD**: Seamless verification of code quality, widget test passes, and compilation builds via GitHub Actions.
 
 ---
 
-## 🛠️ Getting Started
+## Getting Started
 
 ### Prerequisites
 * Flutter SDK (Channel `stable`, version `3.22.x` or higher recommended)
@@ -60,7 +60,7 @@ flutter test
 
 ---
 
-## 🤖 Continuous Integration (CI/CD)
+##  Continuous Integration (CI/CD)
 
 This project has a pre-configured GitHub Actions workflow located at `.github/workflows/flutter_ci.yml`. Whenever code is pushed or a pull request is submitted, it automatically executes the following jobs:
 1. **Environment Setup**: Provisions Ubuntu virtual machines, setups JDK 17, and initializes the Flutter environment.
@@ -70,7 +70,7 @@ This project has a pre-configured GitHub Actions workflow located at `.github/wo
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 expense_tracker_app/
