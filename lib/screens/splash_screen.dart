@@ -4,15 +4,11 @@ import 'onboarding_screen.dart';
 import '../expense_tracker.dart';
 
 class SplashScreen extends StatefulWidget {
-  final bool isDarkMode;
-  final String themeModeSetting;
-  final Function(String) onThemeChanged;
+  final ValueNotifier<String> themeModeNotifier;
 
   const SplashScreen({
     super.key,
-    required this.isDarkMode,
-    required this.themeModeSetting,
-    required this.onThemeChanged,
+    required this.themeModeNotifier,
   });
 
   @override
@@ -123,9 +119,7 @@ class _SplashScreenState extends State<SplashScreen>
           pageBuilder:
               (context, animation, secondaryAnimation) =>
                   ResponsiveExpenseTracker(
-                    isDarkMode: widget.isDarkMode,
-                    themeModeSetting: widget.themeModeSetting,
-                    onThemeChanged: widget.onThemeChanged,
+                    themeModeNotifier: widget.themeModeNotifier,
                   ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
@@ -138,9 +132,7 @@ class _SplashScreenState extends State<SplashScreen>
         PageRouteBuilder(
           pageBuilder:
               (context, animation, secondaryAnimation) => OnboardingScreen(
-                isDarkMode: widget.isDarkMode,
-                themeModeSetting: widget.themeModeSetting,
-                onThemeChanged: widget.onThemeChanged,
+                themeModeNotifier: widget.themeModeNotifier,
               ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
@@ -162,7 +154,11 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = widget.isDarkMode;
+    final themeMode = widget.themeModeNotifier.value;
+    final platformBrightness = MediaQuery.platformBrightnessOf(context);
+    final bool isDark = themeMode == 'system'
+        ? platformBrightness == Brightness.dark
+        : themeMode == 'dark';
 
     return Scaffold(
       body: Container(
@@ -187,9 +183,12 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
         child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
               const Spacer(flex: 3),
 
               // Animated App Icon from assets
@@ -341,6 +340,8 @@ class _SplashScreenState extends State<SplashScreen>
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 }

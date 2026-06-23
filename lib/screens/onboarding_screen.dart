@@ -3,15 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../expense_tracker.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  final bool isDarkMode;
-  final String themeModeSetting;
-  final Function(String) onThemeChanged;
+  final ValueNotifier<String> themeModeNotifier;
 
   const OnboardingScreen({
     super.key,
-    required this.isDarkMode,
-    required this.themeModeSetting,
-    required this.onThemeChanged,
+    required this.themeModeNotifier,
   });
 
   @override
@@ -106,9 +102,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
             ResponsiveExpenseTracker(
-          isDarkMode: widget.isDarkMode,
-          themeModeSetting: widget.themeModeSetting,
-          onThemeChanged: widget.onThemeChanged,
+          themeModeNotifier: widget.themeModeNotifier,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
@@ -143,7 +137,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = widget.isDarkMode;
+    final themeMode = widget.themeModeNotifier.value;
+    final platformBrightness = MediaQuery.platformBrightnessOf(context);
+    final bool isDark = themeMode == 'system'
+        ? platformBrightness == Brightness.dark
+        : themeMode == 'dark';
 
     return Scaffold(
       body: Container(
@@ -157,8 +155,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         ),
         child: SafeArea(
-          child: Column(
-            children: [
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Column(
+                children: [
               // Skip button
               Align(
                 alignment: Alignment.topRight,
@@ -280,8 +281,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildPage(OnboardingData data, bool isDark) {
     return SingleChildScrollView(
@@ -402,11 +405,12 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   Widget _buildFeatureBadges(OnboardingData data, bool isDark) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 12,
+      runSpacing: 8,
       children: data.badges.map((badge) {
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 6),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: isDark
