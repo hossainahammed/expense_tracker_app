@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'expense_modal.dart';
 import 'widget/expense_pie_chart.dart';
+import 'widget/balance_card.dart';
+import 'widget/filter_sort_row.dart';
+import 'widget/transaction_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ResponsiveExpenseTracker extends StatefulWidget {
@@ -587,152 +590,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     return filtered;
   }
 
-  Widget _buildBalanceCard(
-    double remainingBalance,
-    double progressPercent,
-    Color progressColor,
-  ) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors:
-              _isDark
-                  ? [const Color(0xFF4F46E5), const Color(0xFF6D28D9)]
-                  : [const Color(0xFF6366F1), const Color(0xFF4338CA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: (_isDark
-                    ? const Color(0xFF4F46E5)
-                    : const Color(0xFF6366F1))
-                .withValues(alpha: 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Available Balance",
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.85),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              if (remainingBalance < 0)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.warning_rounded,
-                        color: Colors.white,
-                        size: 12,
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        "Limit Exceeded",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '$_currency${remainingBalance.toStringAsFixed(2)}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Total Spent",
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$_currency${totalExpense.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Total Budget",
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$_currency${_budgetLimit.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progressPercent,
-              backgroundColor: Colors.white.withValues(alpha: 0.2),
-              valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-              minHeight: 8,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildChartCard() {
     return Container(
@@ -772,116 +630,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     );
   }
 
-  Widget _buildFilterAndSortRow() {
-    final isDarkMode = _isDark;
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: 16.0,
-        right: 16.0,
-        top: 12.0,
-        bottom: 4.0,
-      ),
-      child: Row(
-        children: [
-          // Category Filter Dropdown
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color:
-                      isDarkMode
-                          ? const Color(0x7F334155)
-                          : const Color(0xFFE2E8F0),
-                ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedFilter,
-                  isExpanded: true,
-                  icon: const Icon(
-                    Icons.filter_alt_rounded,
-                    size: 18,
-                    color: Colors.grey,
-                  ),
-                  dropdownColor: Theme.of(context).cardTheme.color,
-                  borderRadius: BorderRadius.circular(14),
-                  items:
-                      ['All', ...categories]
-                          .map(
-                            (c) => DropdownMenuItem(
-                              value: c,
-                              child: Text(
-                                c,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedFilter = val);
-                  },
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Sort Dropdown
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color:
-                      isDarkMode
-                          ? const Color(0x7F334155)
-                          : const Color(0xFFE2E8F0),
-                ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedSort,
-                  isExpanded: true,
-                  icon: const Icon(
-                    Icons.sort_rounded,
-                    size: 18,
-                    color: Colors.grey,
-                  ),
-                  dropdownColor: Theme.of(context).cardTheme.color,
-                  borderRadius: BorderRadius.circular(14),
-                  items:
-                      ['Newest', 'Amount']
-                          .map(
-                            (s) => DropdownMenuItem(
-                              value: s,
-                              child: Text(
-                                s,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedSort = val);
-                  },
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildEmptyState() {
     return Padding(
@@ -906,128 +655,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     );
   }
 
-  Widget _buildTransactionItem(Expense e) {
-    final catColor = _getCategoryColor(e.category);
-    final originalIndex = _expense.indexOf(e);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color:
-              _isDark
-                  ? const Color(0x4C334155)
-                  : const Color(0xFFE2E8F0),
-        ),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: catColor.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(_getCategoryIcon(e.category), color: catColor, size: 24),
-        ),
-        title: Text(
-          e.title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                DateFormat.yMMMd().format(e.date),
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color:
-                      _isDark
-                          ? Colors.grey.shade800
-                          : Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  e.category,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '-$_currency${e.amount.toStringAsFixed(2)}',
-              style: const TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(width: 4),
-            PopupMenuButton<String>(
-              icon: const Icon(
-                Icons.more_vert_rounded,
-                size: 20,
-                color: Colors.grey,
-              ),
-              onSelected: (action) {
-                if (action == 'edit') {
-                  _showForm(existingExpense: e, index: originalIndex);
-                } else if (action == 'delete') {
-                  _confirmDeleteExpense(originalIndex);
-                }
-              },
-              itemBuilder:
-                  (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_rounded, size: 18),
-                          SizedBox(width: 8),
-                          Text('Edit'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.delete_rounded,
-                            size: 18,
-                            color: Colors.redAccent,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.redAccent),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1139,10 +767,13 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          _buildBalanceCard(
-                            remainingBalance,
-                            progressPercent,
-                            progressColor,
+                          BalanceCard(
+                            currency: _currency,
+                            remainingBalance: remainingBalance,
+                            totalExpense: totalExpense,
+                            budgetLimit: _budgetLimit,
+                            progressPercent: progressPercent,
+                            progressColor: progressColor,
                           ),
                           _buildChartCard(),
                         ],
@@ -1162,7 +793,19 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                     flex: 6,
                     child: CustomScrollView(
                       slivers: [
-                        SliverToBoxAdapter(child: _buildFilterAndSortRow()),
+                        SliverToBoxAdapter(
+                          child: FilterSortRow(
+                            selectedFilter: _selectedFilter,
+                            selectedSort: _selectedSort,
+                            categories: categories,
+                            onFilterChanged: (val) {
+                              setState(() => _selectedFilter = val);
+                            },
+                            onSortChanged: (val) {
+                              setState(() => _selectedSort = val);
+                            },
+                          ),
+                        ),
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.only(
@@ -1247,7 +890,19 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                           SliverList(
                             delegate: SliverChildBuilderDelegate((context, index) {
                               final e = _filteredExpenses[index];
-                              return _buildTransactionItem(e);
+                              return TransactionItem(
+                                expense: e,
+                                currency: _currency,
+                                onEdit: () => _showForm(
+                                  existingExpense: e,
+                                  index: _expense.indexOf(e),
+                                ),
+                                onDelete: () => _confirmDeleteExpense(
+                                  _expense.indexOf(e),
+                                ),
+                                categoryIcon: _getCategoryIcon(e.category),
+                                categoryColor: _getCategoryColor(e.category),
+                              );
                             }, childCount: _filteredExpenses.length),
                           ),
                         const SliverToBoxAdapter(child: SizedBox(height: 80)),
@@ -1259,13 +914,28 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
             : CustomScrollView(
                 slivers: [
                   // 1. Compact Dropdown Filters Row (Placed FIRST, before balance card)
-                  SliverToBoxAdapter(child: _buildFilterAndSortRow()),
+                  SliverToBoxAdapter(
+                    child: FilterSortRow(
+                      selectedFilter: _selectedFilter,
+                      selectedSort: _selectedSort,
+                      categories: categories,
+                      onFilterChanged: (val) {
+                        setState(() => _selectedFilter = val);
+                      },
+                      onSortChanged: (val) {
+                        setState(() => _selectedSort = val);
+                      },
+                    ),
+                  ),
                   // 2. Balance Card
                   SliverToBoxAdapter(
-                    child: _buildBalanceCard(
-                      remainingBalance,
-                      progressPercent,
-                      progressColor,
+                    child: BalanceCard(
+                      currency: _currency,
+                      remainingBalance: remainingBalance,
+                      totalExpense: totalExpense,
+                      budgetLimit: _budgetLimit,
+                      progressPercent: progressPercent,
+                      progressColor: progressColor,
                     ),
                   ),
                   // 3. Chart Card
@@ -1356,7 +1026,19 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                     SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final e = _filteredExpenses[index];
-                        return _buildTransactionItem(e);
+                        return TransactionItem(
+                          expense: e,
+                          currency: _currency,
+                          onEdit: () => _showForm(
+                            existingExpense: e,
+                            index: _expense.indexOf(e),
+                          ),
+                          onDelete: () => _confirmDeleteExpense(
+                            _expense.indexOf(e),
+                          ),
+                          categoryIcon: _getCategoryIcon(e.category),
+                          categoryColor: _getCategoryColor(e.category),
+                        );
                       }, childCount: _filteredExpenses.length),
                     ),
                   // Bottom padding so items don't get covered by FAB
