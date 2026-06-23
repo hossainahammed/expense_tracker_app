@@ -1,10 +1,8 @@
-class Expense{
+class Expense {
   String title;
   double amount;
   DateTime date;
   String category;
-
-
 
   Expense({
     required this.title,
@@ -13,15 +11,12 @@ class Expense{
     required this.category,
   });
 
-
-
   Map<String, dynamic> toJson() => {
     'title': title,
     'amount': amount,
     'date': date.toIso8601String(),
     'category': category,
   };
-
 
   factory Expense.fromJson(Map<String, dynamic> json) {
     return Expense(
@@ -32,4 +27,3 @@ class Expense{
     );
   }
 }
-

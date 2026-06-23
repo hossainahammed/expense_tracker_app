@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:device_preview/device_preview.dart';
 
-import 'expense_tracker.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(DevicePreview(enabled: false, builder: (context) => const MyApp()));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
@@ -49,8 +48,6 @@ class _MyAppState extends State<MyApp> {
         : themeModeSetting == 'dark';
 
     return MaterialApp(
-      locale: DevicePreview.locale(context),
-      builder: DevicePreview.appBuilder,
       debugShowCheckedModeBanner: false,
       title: 'SpendWise',
       theme: ThemeData(
@@ -69,7 +66,10 @@ class _MyAppState extends State<MyApp> {
           margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: Color(0xFFBAE6FD), width: 1), // Soft blue border
+            side: const BorderSide(
+              color: Color(0xFFBAE6FD),
+              width: 1,
+            ), // Soft blue border
           ),
         ),
         appBarTheme: const AppBarTheme(
@@ -120,7 +120,7 @@ class _MyAppState extends State<MyApp> {
       themeMode: themeModeSetting == 'system'
           ? ThemeMode.system
           : (themeModeSetting == 'dark' ? ThemeMode.dark : ThemeMode.light),
-      home: ResponsiveExpenseTracker(
+      home: SplashScreen(
         isDarkMode: isDark,
         themeModeSetting: themeModeSetting,
         onThemeChanged: toggleTheme,
