@@ -160,6 +160,9 @@ class _SplashScreenState extends State<SplashScreen>
         ? platformBrightness == Brightness.dark
         : themeMode == 'dark';
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final logoSize = (screenWidth * 0.45).clamp(120.0, 180.0);
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -203,8 +206,8 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Transform.scale(
                       scale: _logoScale.value,
                       child: Container(
-                        width: 160,
-                        height: 160,
+                        width: logoSize,
+                        height: logoSize,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           boxShadow: [
@@ -244,14 +247,12 @@ class _SplashScreenState extends State<SplashScreen>
                       opacity: _textOpacity.value,
                       child: Text(
                         'SpendWise',
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                           fontSize: 36,
-                          fontWeight: FontWeight.bold,
                           letterSpacing: 1.5,
-                          color:
-                              isDark
-                                  ? const Color(0xFFF1F5F9)
-                                  : const Color(0xFF0369A1),
+                          color: isDark
+                              ? const Color(0xFFF1F5F9)
+                              : const Color(0xFF0369A1),
                         ),
                       ),
                     ),
@@ -269,14 +270,12 @@ class _SplashScreenState extends State<SplashScreen>
                     opacity: _subtitleOpacity.value,
                     child: Text(
                       'Smart Expense Tracking',
-                      style: TextStyle(
-                        fontSize: 16,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.5,
-                        color:
-                            isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   );
@@ -323,12 +322,10 @@ class _SplashScreenState extends State<SplashScreen>
                     opacity: _loadingOpacity.value,
                     child: Text(
                       'v1.0.0',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color:
-                            isDark
-                                ? const Color(0xFF64748B)
-                                : const Color(0xFF94A3B8),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: isDark
+                            ? const Color(0xFF64748B)
+                            : const Color(0xFF94A3B8),
                       ),
                     ),
                   );

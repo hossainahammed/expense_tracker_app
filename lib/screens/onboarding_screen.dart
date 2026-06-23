@@ -169,7 +169,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     onPressed: _completeOnboarding,
                     child: Text(
                       'Skip',
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: isDark
@@ -251,10 +251,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                       _currentPage == _pages.length - 1
                                           ? 'Get Started'
                                           : 'Next',
-                                      style: const TextStyle(
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                         color: Colors.white,
                                         fontSize: 18,
-                                        fontWeight: FontWeight.bold,
                                         letterSpacing: 0.5,
                                       ),
                                     ),
@@ -287,6 +286,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 }
 
   Widget _buildPage(OnboardingData data, bool isDark) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final imageSize = (screenWidth * 0.55).clamp(180.0, 260.0);
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -310,8 +312,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 );
               },
               child: Container(
-                height: 240,
-                width: 240,
+                height: imageSize,
+                width: imageSize,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(32),
                   boxShadow: [
@@ -357,9 +359,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               child: Text(
                 data.title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                   fontSize: 28,
-                  fontWeight: FontWeight.bold,
                   height: 1.2,
                   color: isDark
                       ? const Color(0xFFF1F5F9)
@@ -387,7 +388,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               child: Text(
                 data.description,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontSize: 15,
                   height: 1.6,
                   color: isDark
@@ -432,7 +433,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               const SizedBox(width: 4),
               Text(
                 badge['label'] as String,
-                style: TextStyle(
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: data.gradientColors[0],
