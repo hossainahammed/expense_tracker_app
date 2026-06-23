@@ -6,15 +6,11 @@ import 'widget/expense_pie_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ResponsiveExpenseTracker extends StatefulWidget {
-  final bool isDarkMode;
-  final String themeModeSetting;
-  final Function(String) onThemeChanged;
+  final ValueNotifier<String> themeModeNotifier;
 
   const ResponsiveExpenseTracker({
     super.key,
-    required this.isDarkMode,
-    required this.themeModeSetting,
-    required this.onThemeChanged,
+    required this.themeModeNotifier,
   });
 
   @override
@@ -48,6 +44,14 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   String _selectedFilter = 'All';
   String _selectedSort = 'Newest';
   String _selectedDateFilter = 'All Time';
+
+  bool get _isDark {
+    final themeMode = widget.themeModeNotifier.value;
+    final platformBrightness = MediaQuery.platformBrightnessOf(context);
+    return themeMode == 'system'
+        ? platformBrightness == Brightness.dark
+        : themeMode == 'dark';
+  }
 
   @override
   void initState() {
@@ -177,6 +181,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     showModalBottomSheet(
       isScrollControlled: true,
       context: context,
+      constraints: const BoxConstraints(maxWidth: 600),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -594,7 +599,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors:
-              widget.isDarkMode
+              _isDark
                   ? [const Color(0xFF4F46E5), const Color(0xFF6D28D9)]
                   : [const Color(0xFF6366F1), const Color(0xFF4338CA)],
           begin: Alignment.topLeft,
@@ -603,7 +608,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: (widget.isDarkMode
+            color: (_isDark
                     ? const Color(0xFF4F46E5)
                     : const Color(0xFF6366F1))
                 .withValues(alpha: 0.3),
@@ -739,7 +744,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color:
-              widget.isDarkMode
+              _isDark
                   ? const Color(0x7F334155)
                   : const Color(0xFFE2E8F0),
         ),
@@ -768,7 +773,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   }
 
   Widget _buildFilterAndSortRow() {
-    final isDarkMode = widget.isDarkMode;
+    final isDarkMode = _isDark;
     return Padding(
       padding: const EdgeInsets.only(
         left: 16.0,
@@ -911,7 +916,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color:
-              widget.isDarkMode
+              _isDark
                   ? const Color(0x4C334155)
                   : const Color(0xFFE2E8F0),
         ),
@@ -932,18 +937,20 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4.0),
-          child: Row(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 DateFormat.yMMMd().format(e.date),
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                   color:
-                      widget.isDarkMode
+                      _isDark
                           ? Colors.grey.shade800
                           : Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(6),
@@ -1035,9 +1042,15 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
       progressColor = Colors.orangeAccent;
     }
 
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      appBar: AppBar(
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isWide = screenWidth > 720;
+
+    return ValueListenableBuilder<String>(
+      valueListenable: widget.themeModeNotifier,
+      builder: (context, themeModeSetting, child) {
+        return Scaffold(
+          resizeToAvoidBottomInset: true,
+          appBar: AppBar(
         title: const Text(
           "SpendWise",
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -1045,35 +1058,39 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         actions: [
           IconButton(
             icon: Icon(
-              widget.themeModeSetting == 'system'
+              themeModeSetting == 'system'
                   ? Icons.brightness_auto_rounded
-                  : (widget.isDarkMode
+                  : (_isDark
                       ? Icons.dark_mode_rounded
                       : Icons.light_mode_rounded),
             ),
-            onPressed: () {
+            onPressed: () async {
               String nextMode;
-              if (widget.themeModeSetting == 'system') {
+              if (themeModeSetting == 'system') {
                 nextMode = 'light';
-              } else if (widget.themeModeSetting == 'light') {
+              } else if (themeModeSetting == 'light') {
                 nextMode = 'dark';
               } else {
                 nextMode = 'system';
               }
-              widget.onThemeChanged(nextMode);
+              widget.themeModeNotifier.value = nextMode;
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('themeMode', nextMode);
 
-              ScaffoldMessenger.of(context).clearSnackBars();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    nextMode == 'system'
-                        ? 'System Default'
-                        : (nextMode == 'dark' ? 'Dark Mode' : 'Light Mode'),
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).clearSnackBars();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      nextMode == 'system'
+                          ? 'System Default'
+                          : (nextMode == 'dark' ? 'Dark Mode' : 'Light Mode'),
+                    ),
+                    duration: const Duration(seconds: 1),
+                    behavior: SnackBarBehavior.floating,
                   ),
-                  duration: const Duration(seconds: 1),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+                );
+              }
             },
             tooltip: 'Toggle Theme (System / Light / Dark)',
           ),
@@ -1112,114 +1129,243 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         ),
       ),
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // 1. Compact Dropdown Filters Row (Placed FIRST, before balance card)
-            SliverToBoxAdapter(child: _buildFilterAndSortRow()),
-            // 2. Balance Card
-            SliverToBoxAdapter(
-              child: _buildBalanceCard(
-                remainingBalance,
-                progressPercent,
-                progressColor,
-              ),
-            ),
-            // 3. Chart Card
-            SliverToBoxAdapter(child: _buildChartCard()),
-            // 4. Transactions Title Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 20.0,
-                  right: 20.0,
-                  top: 16.0,
-                  bottom: 8.0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Transactions",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+        child: isWide
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Left Column: Balance and Chart Cards
+                  Expanded(
+                    flex: 5,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _buildBalanceCard(
+                            remainingBalance,
+                            progressPercent,
+                            progressColor,
+                          ),
+                          _buildChartCard(),
+                        ],
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardTheme.color,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color:
-                              widget.isDarkMode
-                                  ? const Color(0x7F334155)
-                                  : const Color(0xFFE2E8F0),
-                        ),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedDateFilter,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                          icon: const Padding(
-                            padding: EdgeInsets.only(left: 4.0),
-                            child: Icon(
-                              Icons.calendar_today_rounded,
-                              size: 14,
-                              color: Colors.grey,
+                  ),
+                  // Divider line
+                  VerticalDivider(
+                    width: 1,
+                    thickness: 1,
+                    color: _isDark
+                        ? const Color(0x4C334155)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                  // Right Column: Filters and Transactions
+                  Expanded(
+                    flex: 6,
+                    child: CustomScrollView(
+                      slivers: [
+                        SliverToBoxAdapter(child: _buildFilterAndSortRow()),
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              left: 20.0,
+                              right: 20.0,
+                              top: 16.0,
+                              bottom: 8.0,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Transactions",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).cardTheme.color,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color:
+                                          _isDark
+                                              ? const Color(0x7F334155)
+                                              : const Color(0xFFE2E8F0),
+                                    ),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: _selectedDateFilter,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                      ),
+                                      icon: const Padding(
+                                        padding: EdgeInsets.only(left: 4.0),
+                                        child: Icon(
+                                          Icons.calendar_today_rounded,
+                                          size: 14,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      dropdownColor: Theme.of(context).cardTheme.color,
+                                      borderRadius: BorderRadius.circular(12),
+                                      items:
+                                          [
+                                            'All Time',
+                                            'Today',
+                                            'This Week',
+                                            'This Month',
+                                            'This Year',
+                                          ]
+                                          .map(
+                                            (c) => DropdownMenuItem(
+                                              value: c,
+                                              child: Text(c),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: (val) {
+                                        if (val != null) {
+                                          setState(() => _selectedDateFilter = val);
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          dropdownColor: Theme.of(context).cardTheme.color,
-                          borderRadius: BorderRadius.circular(12),
-                          items:
-                              [
-                                    'All Time',
-                                    'Today',
-                                    'This Week',
-                                    'This Month',
-                                    'This Year',
-                                  ]
-                                  .map(
-                                    (c) => DropdownMenuItem(
-                                      value: c,
-                                      child: Text(c),
-                                    ),
-                                  )
-                                  .toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedDateFilter = val);
-                            }
-                          },
                         ),
+                        if (_filteredExpenses.isEmpty)
+                          SliverToBoxAdapter(child: _buildEmptyState())
+                        else
+                          SliverList(
+                            delegate: SliverChildBuilderDelegate((context, index) {
+                              final e = _filteredExpenses[index];
+                              return _buildTransactionItem(e);
+                            }, childCount: _filteredExpenses.length),
+                          ),
+                        const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            : CustomScrollView(
+                slivers: [
+                  // 1. Compact Dropdown Filters Row (Placed FIRST, before balance card)
+                  SliverToBoxAdapter(child: _buildFilterAndSortRow()),
+                  // 2. Balance Card
+                  SliverToBoxAdapter(
+                    child: _buildBalanceCard(
+                      remainingBalance,
+                      progressPercent,
+                      progressColor,
+                    ),
+                  ),
+                  // 3. Chart Card
+                  SliverToBoxAdapter(child: _buildChartCard()),
+                  // 4. Transactions Title Header
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 20.0,
+                        right: 20.0,
+                        top: 16.0,
+                        bottom: 8.0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Transactions",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardTheme.color,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color:
+                                    _isDark
+                                        ? const Color(0x7F334155)
+                                        : const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedDateFilter,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                ),
+                                icon: const Padding(
+                                  padding: EdgeInsets.only(left: 4.0),
+                                  child: Icon(
+                                    Icons.calendar_today_rounded,
+                                    size: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                dropdownColor: Theme.of(context).cardTheme.color,
+                                borderRadius: BorderRadius.circular(12),
+                                items:
+                                    [
+                                      'All Time',
+                                      'Today',
+                                      'This Week',
+                                      'This Month',
+                                      'This Year',
+                                    ]
+                                    .map(
+                                      (c) => DropdownMenuItem(
+                                        value: c,
+                                        child: Text(c),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    setState(() => _selectedDateFilter = val);
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  // 5. Transactions List or Empty State
+                  if (_filteredExpenses.isEmpty)
+                    SliverToBoxAdapter(child: _buildEmptyState())
+                  else
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final e = _filteredExpenses[index];
+                        return _buildTransactionItem(e);
+                      }, childCount: _filteredExpenses.length),
+                    ),
+                  // Bottom padding so items don't get covered by FAB
+                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                ],
               ),
-            ),
-            // 5. Transactions List or Empty State
-            if (_filteredExpenses.isEmpty)
-              SliverToBoxAdapter(child: _buildEmptyState())
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final e = _filteredExpenses[index];
-                  return _buildTransactionItem(e);
-                }, childCount: _filteredExpenses.length),
-              ),
-            // Bottom padding so items don't get covered by FAB
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
-          ],
-        ),
       ),
     );
-  }
+  },
+);
+}
 }

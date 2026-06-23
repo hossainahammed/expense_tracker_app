@@ -4,15 +4,18 @@ import 'package:expense_tracker/main.dart';
 
 void main() {
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      'hasSeenOnboarding': true,
+      'themeMode': 'light',
+    });
   });
 
   testWidgets('Expense tracker smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
-    // Trigger a frame to let asynchronous operations complete.
-    await tester.pumpAndSettle();
+    // Let the splash screen animations and navigation complete.
+    await tester.pumpAndSettle(const Duration(seconds: 4));
 
     // Verify that the title is present in the widget tree.
     expect(find.text('SpendWise'), findsOneWidget);
