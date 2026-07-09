@@ -677,37 +677,41 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
 
 
 
-  @override
-  Widget build(BuildContext context) {
-    final double remainingBalance = _budgetLimit - totalExpense;
-    final double progressPercent =
-        _budgetLimit > 0 ? (totalExpense / _budgetLimit).clamp(0.0, 1.0) : 0.0;
-
-    Color progressColor = Colors.teal;
-    if (progressPercent >= 0.9) {
-      progressColor = Colors.redAccent;
-    } else if (progressPercent >= 0.7) {
-      progressColor = Colors.orangeAccent;
-    }
-
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final bool isWide = screenWidth > 720;
-
-    return ValueListenableBuilder<String>(
-      valueListenable: widget.themeModeNotifier,
-      builder: (context, themeModeSetting, child) {
-        return Scaffold(
-          resizeToAvoidBottomInset: true,
-          appBar: AppBar(
-        title: const Text(
-          "SpendWise",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.folder_copy_rounded),
-            tooltip: 'Folders',
-            onPressed: () {
+  Widget _buildDrawer(String themeModeSetting) {
+    return Drawer(
+      child: Column(
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.account_balance_wallet_rounded,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'SpendWise',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.folder_copy_rounded, color: Theme.of(context).colorScheme.primary),
+            title: const Text('Folders'),
+            subtitle: const Text('Manage expense categories'),
+            onTap: () {
+              Navigator.pop(context); // Close drawer
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -740,15 +744,22 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
               );
             },
           ),
-          IconButton(
-            icon: Icon(
+          const Divider(),
+          ListTile(
+            leading: Icon(
               themeModeSetting == 'system'
                   ? Icons.brightness_auto_rounded
                   : (_isDark
                       ? Icons.dark_mode_rounded
                       : Icons.light_mode_rounded),
             ),
-            onPressed: () async {
+            title: const Text('Theme Mode'),
+            subtitle: Text(
+              themeModeSetting == 'system'
+                  ? 'System Default'
+                  : (themeModeSetting == 'dark' ? 'Dark Mode' : 'Light Mode'),
+            ),
+            onTap: () async {
               String nextMode;
               if (themeModeSetting == 'system') {
                 nextMode = 'light';
@@ -760,61 +771,131 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
               widget.themeModeNotifier.value = nextMode;
               final prefs = await SharedPreferences.getInstance();
               await prefs.setString('themeMode', nextMode);
-
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).clearSnackBars();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      nextMode == 'system'
-                          ? 'System Default'
-                          : (nextMode == 'dark' ? 'Dark Mode' : 'Light Mode'),
-                    ),
-                    duration: const Duration(seconds: 1),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              }
             },
-            tooltip: 'Toggle Theme (System / Light / Dark)',
           ),
-          IconButton(
-            icon: const Icon(Icons.tune_rounded),
-            onPressed: _setBudgetLimit,
-            tooltip: 'Budget Limit',
+          ListTile(
+            leading: const Icon(Icons.tune_rounded),
+            title: const Text('Budget Limit'),
+            subtitle: Text('Current: $_currency${_budgetLimit.toStringAsFixed(2)}'),
+            onTap: () {
+              Navigator.pop(context); // Close drawer before opening dialog
+              _setBudgetLimit();
+            },
           ),
-          PopupMenuButton<String>(
-            icon: Text(
-              _currency,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ListTile(
+            leading: const Icon(Icons.payments_rounded),
+            title: const Text('Currency'),
+            subtitle: Text('Current: $_currency'),
+            trailing: PopupMenuButton<String>(
+              icon: const Icon(Icons.arrow_drop_down_rounded),
+              tooltip: 'Select Currency',
+              onSelected: (value) async {
+                setState(() => _currency = value);
+                await _saveCurrency(value);
+              },
+              itemBuilder: (context) => ['৳', '\$', '€', '₹', '£']
+                  .map((c) => PopupMenuItem(value: c, child: Text(c)))
+                  .toList(),
             ),
-            tooltip: 'Select Currency',
-            onSelected: (value) async {
-              setState(() => _currency = value);
-              await _saveCurrency(value);
-            },
-            itemBuilder:
-                (context) =>
-                    ['৳', '\$', '€', '₹', '£']
-                        .map((c) => PopupMenuItem(value: c, child: Text(c)))
-                        .toList(),
           ),
-          const SizedBox(width: 8),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Version 1.0.0',
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                fontSize: 12,
+              ),
+            ),
+          ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showForm,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text(
-          "Add Expense",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: SafeArea(
-        child: isWide
-            ? Row(
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double remainingBalance = _budgetLimit - totalExpense;
+    final double progressPercent =
+        _budgetLimit > 0 ? (totalExpense / _budgetLimit).clamp(0.0, 1.0) : 0.0;
+    Color progressColor = Colors.green;
+    if (progressPercent >= 0.9) {
+      progressColor = Colors.redAccent;
+    } else if (progressPercent >= 0.7) {
+      progressColor = Colors.orangeAccent;
+    }
+
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isWide = screenWidth > 720;
+
+    return ValueListenableBuilder<String>(
+      valueListenable: widget.themeModeNotifier,
+      builder: (context, themeModeSetting, child) {
+        return Scaffold(
+          resizeToAvoidBottomInset: true,
+          appBar: AppBar(
+            title: const Text(
+              "SpendWise",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: Icon(
+                  themeModeSetting == 'system'
+                      ? Icons.brightness_auto_rounded
+                      : (_isDark
+                          ? Icons.dark_mode_rounded
+                          : Icons.light_mode_rounded),
+                ),
+                onPressed: () async {
+                  String nextMode;
+                  if (themeModeSetting == 'system') {
+                    nextMode = 'light';
+                  } else if (themeModeSetting == 'light') {
+                    nextMode = 'dark';
+                  } else {
+                    nextMode = 'system';
+                  }
+                  widget.themeModeNotifier.value = nextMode;
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString('themeMode', nextMode);
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).clearSnackBars();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          nextMode == 'system'
+                              ? 'System Default'
+                              : (nextMode == 'dark' ? 'Dark Mode' : 'Light Mode'),
+                        ),
+                        duration: const Duration(seconds: 1),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                tooltip: 'Toggle Theme',
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          drawer: _buildDrawer(themeModeSetting),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: _showForm,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text(
+              "Add Expense",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          body: SafeArea(
+            child: isWide
+                ? Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Left Column: Balance and Chart Cards
