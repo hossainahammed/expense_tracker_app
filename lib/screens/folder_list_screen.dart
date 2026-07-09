@@ -6,12 +6,14 @@ class FolderListScreen extends StatefulWidget {
   final List<Expense> expenses;
   final String currency;
   final VoidCallback onExpensesUpdated;
+  final Future<void> Function({Expense? existingExpense, String? defaultFolder}) onShowForm;
 
   const FolderListScreen({
     super.key,
     required this.expenses,
     required this.currency,
     required this.onExpensesUpdated,
+    required this.onShowForm,
   });
 
   @override
@@ -113,6 +115,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
                               widget.onExpensesUpdated();
                               setState(() {}); // refresh the list
                             },
+                            onShowForm: widget.onShowForm,
                           ),
                         ),
                       );

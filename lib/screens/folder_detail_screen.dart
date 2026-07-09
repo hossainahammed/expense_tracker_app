@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../expense_modal.dart';
 import '../widget/pdf_generator.dart';
+import '../widget/transaction_item.dart';
 
 class FolderDetailScreen extends StatefulWidget {
   final String folderName;
@@ -9,6 +9,7 @@ class FolderDetailScreen extends StatefulWidget {
   final List<Expense> allExpenses;
   final String currency;
   final VoidCallback onExpensesUpdated;
+  final Future<void> Function({Expense? existingExpense, String? defaultFolder}) onShowForm;
 
   const FolderDetailScreen({
     super.key,
@@ -17,6 +18,7 @@ class FolderDetailScreen extends StatefulWidget {
     required this.allExpenses,
     required this.currency,
     required this.onExpensesUpdated,
+    required this.onShowForm,
   });
 
   @override
@@ -64,6 +66,41 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
       case 'Miscellaneous': return const Color(0xFF90A4AE);
       default: return Colors.grey;
     }
+  }
+
+  void _confirmDeleteExpense(Expense expense) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this expense?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _deleteExpense(expense);
+                Navigator.of(ctx).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _deleteExpense(Expense expense) {
@@ -131,52 +168,63 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
                     itemCount: widget.expenses.length,
                     itemBuilder: (context, index) {
                       final expense = widget.expenses[index];
-                      final catColor = _getCategoryColor(expense.category);
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(
-                            color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-                          ),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          leading: CircleAvatar(
-                            backgroundColor: catColor.withValues(alpha: 0.15),
-                            child: Icon(_getCategoryIcon(expense.category), color: catColor),
-                          ),
-                          title: Text(
-                            expense.title,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(DateFormat.yMMMd().format(expense.date)),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${widget.currency}${expense.amount.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.red),
-                                onPressed: () {
-                                  _deleteExpense(expense);
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
+                      return TransactionItem(
+                        expense: expense,
+                        currency: widget.currency,
+                        onEdit: () async {
+                          await widget.onShowForm(
+                            existingExpense: expense,
+                            defaultFolder: widget.folderName,
+                          );
+                          // The `onExpensesUpdated` from `FolderListScreen` triggers a rebuild there,
+                          // but since we passed the exact `widget.expenses` list, and `ResponsiveExpenseTracker`
+                          // modifies `_expense` which updates references, we might need to filter again.
+                          // Wait, `widget.expenses` is a list created in `FolderListScreen`'s `_getGroupedExpenses`.
+                          // So when the global list updates, `widget.expenses` here DOES NOT automatically get the new item
+                          // until `FolderListScreen` re-runs `_getGroupedExpenses`.
+                          // But we can trigger `setState` and update our local `widget.expenses` 
+                          // by filtering `widget.allExpenses` again!
+                          setState(() {
+                            widget.expenses.clear();
+                            widget.expenses.addAll(
+                              widget.allExpenses.where((e) {
+                                final folder = (e.folderName?.trim().isNotEmpty == true) ? e.folderName!.trim() : 'Uncategorized';
+                                return folder == widget.folderName;
+                              })
+                            );
+                            widget.onExpensesUpdated();
+                          });
+                        },
+                        onDelete: () => _confirmDeleteExpense(expense),
+                        categoryIcon: _getCategoryIcon(expense.category),
+                        categoryColor: _getCategoryColor(expense.category),
                       );
                     },
                   ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          await widget.onShowForm(defaultFolder: widget.folderName);
+          setState(() {
+            widget.expenses.clear();
+            widget.expenses.addAll(
+              widget.allExpenses.where((e) {
+                final folder = (e.folderName?.trim().isNotEmpty == true) ? e.folderName!.trim() : 'Uncategorized';
+                return folder == widget.folderName;
+              })
+            );
+            widget.onExpensesUpdated();
+          });
+        },
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text(
+          "Add Expense",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }

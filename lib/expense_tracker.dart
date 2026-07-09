@@ -172,7 +172,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     }
   }
 
-  void _showForm({Expense? existingExpense, int? index}) {
+  Future<void> _showForm({Expense? existingExpense, int? index, String? defaultFolder}) async {
     String selectedCategory = existingExpense?.category ?? categories.first;
     TextEditingController titleController = TextEditingController(
       text: existingExpense?.title ?? '',
@@ -181,11 +181,11 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
       text: existingExpense != null ? existingExpense.amount.toString() : '',
     );
     TextEditingController folderController = TextEditingController(
-      text: existingExpense?.folderName ?? '',
+      text: existingExpense?.folderName ?? defaultFolder ?? '',
     );
     DateTime expenseDateTime = existingExpense?.date ?? DateTime.now();
 
-    showModalBottomSheet(
+    await showModalBottomSheet(
       isScrollControlled: true,
       context: context,
       constraints: const BoxConstraints(maxWidth: 600),
@@ -718,6 +718,21 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                       setState(() {
                          totalExpense = _expense.fold(0, (sum, item) => sum + item.amount);
                          _saveExpenses();
+                      });
+                    },
+                    onShowForm: ({Expense? existingExpense, String? defaultFolder}) async {
+                      int? idx;
+                      if (existingExpense != null) {
+                        idx = _expense.indexOf(existingExpense);
+                      }
+                      await _showForm(
+                        existingExpense: existingExpense,
+                        index: idx,
+                        defaultFolder: defaultFolder,
+                      );
+                      // After form closes, force update
+                      setState(() {
+                         totalExpense = _expense.fold(0, (sum, item) => sum + item.amount);
                       });
                     },
                   ),
