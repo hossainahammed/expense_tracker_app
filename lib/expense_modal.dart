@@ -3,12 +3,14 @@ class Expense {
   double amount;
   DateTime date;
   String category;
+  String? folderName;
 
   Expense({
     required this.title,
     required this.amount,
     required this.date,
     required this.category,
+    this.folderName,
   });
 
   Map<String, dynamic> toJson() => {
@@ -16,6 +18,7 @@ class Expense {
     'amount': amount,
     'date': date.toIso8601String(),
     'category': category,
+    'folderName': folderName,
   };
 
   factory Expense.fromJson(Map<String, dynamic> json) {
@@ -24,6 +27,7 @@ class Expense {
       amount: json['amount'],
       date: DateTime.parse(json['date']),
       category: json['category'],
+      folderName: json['folderName'],
     );
   }
 }
