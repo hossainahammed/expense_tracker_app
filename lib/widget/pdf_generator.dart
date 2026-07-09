@@ -10,7 +10,18 @@ class PdfGenerator {
     List<Expense> expenses,
     String currency,
   ) async {
-    final pdf = pw.Document();
+    final baseFont = await PdfGoogleFonts.robotoRegular();
+    final bengaliFont = await PdfGoogleFonts.notoSansBengaliRegular();
+    final devanagariFont = await PdfGoogleFonts.notoSansDevanagariRegular();
+    final baseFontBold = await PdfGoogleFonts.robotoBold();
+
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: baseFont,
+        bold: baseFontBold,
+        fontFallback: [bengaliFont, devanagariFont],
+      ),
+    );
 
     final totalAmount = expenses.fold(0.0, (sum, item) => sum + item.amount);
 
