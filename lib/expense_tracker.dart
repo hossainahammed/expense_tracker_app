@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'expense_modal.dart';
 import 'widget/expense_pie_chart.dart';
@@ -243,6 +244,11 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d*'),
+                        ),
+                      ],
                       decoration: InputDecoration(
                         labelText: 'Amount',
                         prefixIcon: const Icon(Icons.attach_money_rounded),
@@ -449,6 +455,9 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
           content: TextField(
             controller: budgetController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*')),
+            ],
             decoration: InputDecoration(
               labelText: 'Budget Limit',
               prefixIcon: const Icon(Icons.account_balance_wallet_rounded),

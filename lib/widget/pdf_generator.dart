@@ -5,11 +5,29 @@ import 'package:intl/intl.dart';
 import '../expense_modal.dart';
 
 class PdfGenerator {
+  static String _getCurrencyCode(String symbol) {
+    switch (symbol) {
+      case '৳':
+        return 'BDT';
+      case '\$':
+        return 'USD';
+      case '€':
+        return 'EUR';
+      case '₹':
+        return 'INR';
+      case '£':
+        return 'GBP';
+      default:
+        return symbol;
+    }
+  }
+
   static Future<void> generateAndPrintFolderReport(
     String folderName,
     List<Expense> expenses,
     String currency,
   ) async {
+    final currencyCode = _getCurrencyCode(currency);
     final baseFont = await PdfGoogleFonts.robotoRegular();
     final bengaliFont = await PdfGoogleFonts.notoSansBengaliRegular();
     final devanagariFont = await PdfGoogleFonts.notoSansDevanagariRegular();
@@ -108,7 +126,7 @@ class PdfGenerator {
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(8),
                           child: pw.Text(
-                            '$currency${e.amount.toStringAsFixed(2)}',
+                            '${e.amount.toStringAsFixed(2)} $currencyCode',
                           ),
                         ),
                       ],
@@ -120,7 +138,7 @@ class PdfGenerator {
               pw.Align(
                 alignment: pw.Alignment.centerRight,
                 child: pw.Text(
-                  'Total: $currency${totalAmount.toStringAsFixed(2)}',
+                  'Total: ${totalAmount.toStringAsFixed(2)} $currencyCode',
                   style: pw.TextStyle(
                     fontSize: 20,
                     fontWeight: pw.FontWeight.bold,
