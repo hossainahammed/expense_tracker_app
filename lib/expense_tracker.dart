@@ -7,6 +7,7 @@ import 'widget/balance_card.dart';
 import 'widget/filter_sort_row.dart';
 import 'widget/transaction_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/folder_list_screen.dart';
 
 class ResponsiveExpenseTracker extends StatefulWidget {
   final ValueNotifier<String> themeModeNotifier;
@@ -179,6 +180,9 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     TextEditingController amountController = TextEditingController(
       text: existingExpense != null ? existingExpense.amount.toString() : '',
     );
+    TextEditingController folderController = TextEditingController(
+      text: existingExpense?.folderName ?? '',
+    );
     DateTime expenseDateTime = existingExpense?.date ?? DateTime.now();
 
     showModalBottomSheet(
@@ -241,6 +245,17 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                       decoration: InputDecoration(
                         labelText: 'Amount',
                         prefixIcon: const Icon(Icons.attach_money_rounded),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: folderController,
+                      decoration: InputDecoration(
+                        labelText: 'Folder Name (Optional)',
+                        prefixIcon: const Icon(Icons.folder_rounded),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -369,6 +384,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                                 double.parse(amountController.text),
                                 expenseDateTime,
                                 selectedCategory,
+                                folderController.text.trim().isNotEmpty ? folderController.text.trim() : null,
                               );
                             } else {
                               _addExpense(
@@ -376,6 +392,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                                 double.parse(amountController.text),
                                 expenseDateTime,
                                 selectedCategory,
+                                folderController.text.trim().isNotEmpty ? folderController.text.trim() : null,
                               );
                             }
                             Navigator.pop(context);
@@ -469,10 +486,11 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     double amount,
     DateTime date,
     String category,
+    String? folderName,
   ) {
     setState(() {
       _expense.add(
-        Expense(title: title, amount: amount, date: date, category: category),
+        Expense(title: title, amount: amount, date: date, category: category, folderName: folderName),
       );
       totalExpense += amount;
       _saveExpenses();
@@ -485,6 +503,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
     double amount,
     DateTime date,
     String category,
+    String? folderName,
   ) {
     setState(() {
       totalExpense -= _expense[index].amount;
@@ -493,6 +512,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
         amount: amount,
         date: date,
         category: category,
+        folderName: folderName,
       );
       totalExpense += amount;
       _saveExpenses();
@@ -684,6 +704,27 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.folder_copy_rounded),
+            tooltip: 'Folders',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FolderListScreen(
+                    expenses: _expense,
+                    currency: _currency,
+                    onExpensesUpdated: () {
+                      setState(() {
+                         totalExpense = _expense.fold(0, (sum, item) => sum + item.amount);
+                         _saveExpenses();
+                      });
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(
               themeModeSetting == 'system'
