@@ -33,7 +33,9 @@ class _MyAppState extends State<MyApp> {
           title: 'SpendWise',
           theme: ThemeData(
             brightness: Brightness.light,
-            scaffoldBackgroundColor: const Color(0xFFE0F2FE), // Soft Sea Water Blue
+            scaffoldBackgroundColor: const Color(
+              0xFFE0F2FE,
+            ), // Soft Sea Water Blue
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF0EA5E9), // Ocean Blue
               brightness: Brightness.light,
@@ -85,7 +87,10 @@ class _MyAppState extends State<MyApp> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 24,
+                ),
                 textStyle: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -171,7 +176,10 @@ class _MyAppState extends State<MyApp> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 24,
+                ),
                 textStyle: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -200,12 +208,13 @@ class _MyAppState extends State<MyApp> {
             ),
             useMaterial3: true,
           ),
-          themeMode: themeModeSetting == 'system'
-              ? ThemeMode.system
-              : (themeModeSetting == 'dark' ? ThemeMode.dark : ThemeMode.light),
-          home: SplashScreen(
-            themeModeNotifier: themeModeNotifier,
-          ),
+          themeMode:
+              themeModeSetting == 'system'
+                  ? ThemeMode.system
+                  : (themeModeSetting == 'dark'
+                      ? ThemeMode.dark
+                      : ThemeMode.light),
+          home: SplashScreen(themeModeNotifier: themeModeNotifier),
         );
       },
     );
