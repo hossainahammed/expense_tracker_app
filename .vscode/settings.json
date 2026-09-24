@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "F:/Flutter Development/responsive_expense_tracker/windows/flutter"
+    "cmake.sourceDirectory": "F:/Flutter Development/responsive_expense_tracker/windows/flutter",
+    "cmake.ignoreCMakeListsMissing": true
 }
