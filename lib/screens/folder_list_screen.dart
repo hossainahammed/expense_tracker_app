@@ -7,6 +7,7 @@ class FolderListScreen extends StatefulWidget {
   final String currency;
   final VoidCallback onExpensesUpdated;
   final Future<void> Function({Expense? existingExpense, String? defaultFolder}) onShowForm;
+  final bool showAppBar;
 
   const FolderListScreen({
     super.key,
@@ -14,6 +15,7 @@ class FolderListScreen extends StatefulWidget {
     required this.currency,
     required this.onExpensesUpdated,
     required this.onShowForm,
+    this.showAppBar = true,
   });
 
   @override
@@ -41,9 +43,12 @@ class _FolderListScreenState extends State<FolderListScreen> {
     final folderNames = groupedExpenses.keys.toList()..sort();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Expense Folders'),
-      ),
+      appBar: widget.showAppBar
+          ? AppBar(
+              title: const Text('Expense Folders'),
+              centerTitle: true,
+            )
+          : null,
       body: folderNames.isEmpty
           ? const Center(
               child: Text(
@@ -52,6 +57,7 @@ class _FolderListScreenState extends State<FolderListScreen> {
               ),
             )
           : ListView.builder(
+              padding: const EdgeInsets.only(top: 8, bottom: 90),
               itemCount: folderNames.length,
               itemBuilder: (context, index) {
                 final folderName = folderNames[index];

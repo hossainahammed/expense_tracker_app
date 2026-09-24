@@ -73,6 +73,8 @@ class _FolderDetailScreenState extends State<FolderDetailScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
+          alignment: Alignment.topCenter,
+          insetPadding: const EdgeInsets.only(top: 80, left: 20, right: 20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),

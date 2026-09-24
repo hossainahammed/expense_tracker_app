@@ -9,6 +9,8 @@ import 'widget/filter_sort_row.dart';
 import 'widget/transaction_item.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/folder_list_screen.dart';
+import 'widget/smooth_bottom_nav_bar.dart';
+import 'widget/top_snackbar.dart';
 
 class ResponsiveExpenseTracker extends StatefulWidget {
   final ValueNotifier<String> themeModeNotifier;
@@ -46,6 +48,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
   String _selectedFilter = 'All';
   String _selectedSort = 'Newest';
   String _selectedDateFilter = 'All Time';
+  int _currentTab = 0;
 
   bool get _isDark {
     final themeMode = widget.themeModeNotifier.value;
@@ -448,6 +451,8 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          alignment: Alignment.topCenter,
+          insetPadding: const EdgeInsets.only(top: 80, left: 20, right: 20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -544,6 +549,8 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
+          alignment: Alignment.topCenter,
+          insetPadding: const EdgeInsets.only(top: 80, left: 20, right: 20),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -718,53 +725,38 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
           ),
           ListTile(
             leading: Icon(
+              Icons.grid_view_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            title: const Text('Dashboard'),
+            subtitle: const Text('Transactions & balance overview'),
+            onTap: () {
+              Navigator.pop(context);
+              setState(() => _currentTab = 0);
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.pie_chart_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            title: const Text('Analytics'),
+            subtitle: const Text('Visual spending breakdown'),
+            onTap: () {
+              Navigator.pop(context);
+              setState(() => _currentTab = 1);
+            },
+          ),
+          ListTile(
+            leading: Icon(
               Icons.folder_copy_rounded,
               color: Theme.of(context).colorScheme.primary,
             ),
             title: const Text('Folders'),
             subtitle: const Text('Manage expense categories'),
             onTap: () {
-              Navigator.pop(context); // Close drawer
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => FolderListScreen(
-                        expenses: _expense,
-                        currency: _currency,
-                        onExpensesUpdated: () {
-                          setState(() {
-                            totalExpense = _expense.fold(
-                              0,
-                              (sum, item) => sum + item.amount,
-                            );
-                            _saveExpenses();
-                          });
-                        },
-                        onShowForm: ({
-                          Expense? existingExpense,
-                          String? defaultFolder,
-                        }) async {
-                          int? idx;
-                          if (existingExpense != null) {
-                            idx = _expense.indexOf(existingExpense);
-                          }
-                          await _showForm(
-                            existingExpense: existingExpense,
-                            index: idx,
-                            defaultFolder: defaultFolder,
-                          );
-                          // After form closes, force update
-                          setState(() {
-                            totalExpense = _expense.fold(
-                              0,
-                              (sum, item) => sum + item.amount,
-                            );
-                          });
-                        },
-                      ),
-                ),
-              );
+              Navigator.pop(context);
+              setState(() => _currentTab = 2);
             },
           ),
           const Divider(),
@@ -794,6 +786,19 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
               widget.themeModeNotifier.value = nextMode;
               final prefs = await SharedPreferences.getInstance();
               await prefs.setString('themeMode', nextMode);
+              if (mounted) {
+                TopSnackbar.show(
+                  context,
+                  message: nextMode == 'system'
+                      ? 'System Default'
+                      : (nextMode == 'dark' ? 'Dark Mode' : 'Light Mode'),
+                  icon: nextMode == 'system'
+                      ? Icons.brightness_auto_rounded
+                      : (nextMode == 'dark'
+                          ? Icons.dark_mode_rounded
+                          : Icons.light_mode_rounded),
+                );
+              }
             },
           ),
           ListTile(
@@ -803,7 +808,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
               'Current: $_currency${_budgetLimit.toStringAsFixed(2)}',
             ),
             onTap: () {
-              Navigator.pop(context); // Close drawer before opening dialog
+              Navigator.pop(context);
               _setBudgetLimit();
             },
           ),
@@ -825,6 +830,15 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                           .toList(),
             ),
           ),
+          ListTile(
+            leading: const Icon(Icons.settings_rounded),
+            title: const Text('Settings'),
+            subtitle: const Text('Preferences & data options'),
+            onTap: () {
+              Navigator.pop(context);
+              setState(() => _currentTab = 3);
+            },
+          ),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -840,6 +854,964 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
           ),
         ],
       ),
+    );
+  }
+
+  String _getAppBarTitle() {
+    switch (_currentTab) {
+      case 0:
+        return "SpendWise";
+      case 1:
+        return "Analytics & Insights";
+      case 2:
+        return "Expense Folders";
+      case 3:
+        return "Settings";
+      default:
+        return "SpendWise";
+    }
+  }
+
+  Widget _buildTransactionHeader() {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 20.0,
+        right: 20.0,
+        top: 16.0,
+        bottom: 8.0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            "Transactions",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 2,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color:
+                    _isDark
+                        ? const Color(0x7F334155)
+                        : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedDateFilter,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color:
+                      Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.color,
+                ),
+                icon: const Padding(
+                  padding: EdgeInsets.only(left: 4.0),
+                  child: Icon(
+                    Icons.calendar_today_rounded,
+                    size: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+                dropdownColor: Theme.of(context).cardTheme.color,
+                borderRadius: BorderRadius.circular(12),
+                items:
+                    [
+                          'All Time',
+                          'Today',
+                          'This Week',
+                          'This Month',
+                          'This Year',
+                        ]
+                        .map(
+                          (c) => DropdownMenuItem(
+                            value: c,
+                            child: Text(c),
+                          ),
+                        )
+                        .toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(
+                      () => _selectedDateFilter = val,
+                    );
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHomeTab(
+    bool isWide,
+    double remainingBalance,
+    double progressPercent,
+    Color progressColor,
+  ) {
+    if (isWide) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left Column: Balance and Chart Cards
+          Expanded(
+            flex: 5,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 90),
+              child: Column(
+                children: [
+                  BalanceCard(
+                    currency: _currency,
+                    remainingBalance: remainingBalance,
+                    totalExpense: totalExpense,
+                    budgetLimit: _budgetLimit,
+                    progressPercent: progressPercent,
+                    progressColor: progressColor,
+                  ),
+                  _buildChartCard(),
+                ],
+              ),
+            ),
+          ),
+          // Divider line
+          VerticalDivider(
+            width: 1,
+            thickness: 1,
+            color:
+                _isDark
+                    ? const Color(0x4C334155)
+                    : const Color(0xFFE2E8F0),
+          ),
+          // Right Column: Filters and Transactions
+          Expanded(
+            flex: 6,
+            child: CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(
+                  child: FilterSortRow(
+                    selectedFilter: _selectedFilter,
+                    selectedSort: _selectedSort,
+                    categories: categories,
+                    onFilterChanged: (val) {
+                      setState(() => _selectedFilter = val);
+                    },
+                    onSortChanged: (val) {
+                      setState(() => _selectedSort = val);
+                    },
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildTransactionHeader(),
+                ),
+                if (_filteredExpenses.isEmpty)
+                  SliverToBoxAdapter(child: _buildEmptyState())
+                else
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate((
+                      context,
+                      index,
+                    ) {
+                      final e = _filteredExpenses[index];
+                      return TransactionItem(
+                        expense: e,
+                        currency: _currency,
+                        onEdit:
+                            () => _showForm(
+                              existingExpense: e,
+                              index: _expense.indexOf(e),
+                            ),
+                        onDelete:
+                            () => _confirmDeleteExpense(
+                              _expense.indexOf(e),
+                            ),
+                        categoryIcon: _getCategoryIcon(
+                          e.category,
+                        ),
+                        categoryColor: _getCategoryColor(
+                          e.category,
+                        ),
+                      );
+                    }, childCount: _filteredExpenses.length),
+                  ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 90),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Mobile single column layout
+    return CustomScrollView(
+      slivers: [
+        // 1. Compact Dropdown Filters Row
+        SliverToBoxAdapter(
+          child: FilterSortRow(
+            selectedFilter: _selectedFilter,
+            selectedSort: _selectedSort,
+            categories: categories,
+            onFilterChanged: (val) {
+              setState(() => _selectedFilter = val);
+            },
+            onSortChanged: (val) {
+              setState(() => _selectedSort = val);
+            },
+          ),
+        ),
+        // 2. Balance Card
+        SliverToBoxAdapter(
+          child: BalanceCard(
+            currency: _currency,
+            remainingBalance: remainingBalance,
+            totalExpense: totalExpense,
+            budgetLimit: _budgetLimit,
+            progressPercent: progressPercent,
+            progressColor: progressColor,
+          ),
+        ),
+        // 3. Transactions Title Header
+        SliverToBoxAdapter(
+          child: _buildTransactionHeader(),
+        ),
+        // 4. Transactions List or Empty State
+        if (_filteredExpenses.isEmpty)
+          SliverToBoxAdapter(child: _buildEmptyState())
+        else
+          SliverList(
+            delegate: SliverChildBuilderDelegate((
+              context,
+              index,
+            ) {
+              final e = _filteredExpenses[index];
+              return TransactionItem(
+                expense: e,
+                currency: _currency,
+                onEdit:
+                    () => _showForm(
+                      existingExpense: e,
+                      index: _expense.indexOf(e),
+                    ),
+                onDelete:
+                    () => _confirmDeleteExpense(
+                      _expense.indexOf(e),
+                    ),
+                categoryIcon: _getCategoryIcon(e.category),
+                categoryColor: _getCategoryColor(e.category),
+              );
+            }, childCount: _filteredExpenses.length),
+          ),
+        // Bottom padding so items don't get covered by the floating bottom nav bar
+        const SliverToBoxAdapter(child: SizedBox(height: 90)),
+      ],
+    );
+  }
+
+  Widget _buildMetricCard({
+    required String title,
+    required String value,
+    String? subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _isDark ? const Color(0x7F334155) : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAnalyticsTab() {
+    if (_expense.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.pie_chart_outline_rounded,
+              size: 64,
+              color: Colors.grey.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "No expenses recorded yet",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                "Tap the + button below to add your first expense and view visual category breakdowns.",
+                style: TextStyle(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final highestExpense = _expense.reduce(
+      (curr, next) => curr.amount > next.amount ? curr : next,
+    );
+    final Map<String, double> categoryTotals = {};
+    for (var e in _expense) {
+      categoryTotals[e.category] =
+          (categoryTotals[e.category] ?? 0.0) + e.amount;
+    }
+    final sortedCategories =
+        categoryTotals.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      children: [
+        // Top Metrics Row
+        Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                title: "Total Spent",
+                value: "$_currency${totalExpense.toStringAsFixed(2)}",
+                subtitle: "${_expense.length} transactions",
+                icon: Icons.account_balance_wallet_rounded,
+                color: const Color(0xFF0284C7),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMetricCard(
+                title: "Highest Item",
+                value: "$_currency${highestExpense.amount.toStringAsFixed(2)}",
+                subtitle: highestExpense.title,
+                icon: Icons.arrow_upward_rounded,
+                color: const Color(0xFFEF4444),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Pie Chart Card
+        Container(
+          height: 250,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color:
+                  _isDark
+                      ? const Color(0x7F334155)
+                      : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Spending by Category",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ExpensePieChart(
+                  expenses: _expense,
+                  currency: _currency,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Category Breakdown Header
+        const Text(
+          "Category Breakdown",
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+
+        // Category list
+        ...sortedCategories.map((entry) {
+          final category = entry.key;
+          final amount = entry.value;
+          final percent = totalExpense > 0 ? (amount / totalExpense) : 0.0;
+          final color = _getCategoryColor(category);
+          final count = _expense.where((e) => e.category == category).length;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardTheme.color,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color:
+                    _isDark
+                        ? const Color(0x7F334155)
+                        : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _getCategoryIcon(category),
+                        color: color,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            category,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            "$count transaction${count == 1 ? '' : 's'}",
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "$_currency${amount.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        Text(
+                          "${(percent * 100).toStringAsFixed(1)}%",
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: percent,
+                    minHeight: 6,
+                    backgroundColor: color.withValues(alpha: 0.12),
+                    valueColor: AlwaysStoppedAnimation<Color>(color),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+
+        const SizedBox(height: 90), // Bottom padding for navbar
+      ],
+    );
+  }
+
+  Widget _buildFoldersTab() {
+    return FolderListScreen(
+      expenses: _expense,
+      currency: _currency,
+      showAppBar: false,
+      onExpensesUpdated: () {
+        setState(() {
+          totalExpense = _expense.fold(
+            0,
+            (sum, item) => sum + item.amount,
+          );
+          _saveExpenses();
+        });
+      },
+      onShowForm: ({
+        Expense? existingExpense,
+        String? defaultFolder,
+      }) async {
+        int? idx;
+        if (existingExpense != null) {
+          idx = _expense.indexOf(existingExpense);
+        }
+        await _showForm(
+          existingExpense: existingExpense,
+          index: idx,
+          defaultFolder: defaultFolder,
+        );
+        setState(() {
+          totalExpense = _expense.fold(
+            0,
+            (sum, item) => sum + item.amount,
+          );
+        });
+      },
+    );
+  }
+
+  Widget _buildSettingsCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Theme.of(context).cardTheme.color,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: _isDark ? const Color(0x7F334155) : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            title: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            subtitle: Text(
+              subtitle,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            trailing: trailing,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeOption(
+    String modeKey,
+    String label,
+    IconData icon,
+    String currentSetting,
+  ) {
+    final isSelected = currentSetting == modeKey;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () async {
+          widget.themeModeNotifier.value = modeKey;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('themeMode', modeKey);
+          if (mounted) {
+            TopSnackbar.show(
+              context,
+              message: 'Theme set to $label',
+              icon: icon,
+            );
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color:
+                isSelected
+                    ? primaryColor.withValues(alpha: 0.12)
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color:
+                  isSelected
+                      ? primaryColor
+                      : (_isDark
+                          ? const Color(0x7F334155)
+                          : const Color(0xFFE2E8F0)),
+              width: isSelected ? 1.8 : 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? primaryColor : Colors.grey,
+                size: 22,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight:
+                      isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? primaryColor : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmResetAllExpenses() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            alignment: Alignment.topCenter,
+            insetPadding: const EdgeInsets.only(top: 80, left: 20, right: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Colors.redAccent),
+                SizedBox(width: 8),
+                Text('Reset All Data'),
+              ],
+            ),
+            content: const Text(
+              'Are you sure you want to permanently delete all expenses? This action cannot be undone.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Delete All'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true) {
+      setState(() {
+        _expense.clear();
+        totalExpense = 0.0;
+      });
+      await _saveExpenses();
+      if (mounted) {
+        TopSnackbar.show(
+          context,
+          message: 'All transactions have been cleared',
+          icon: Icons.delete_sweep_rounded,
+          backgroundColor: Colors.redAccent.shade700,
+        );
+      }
+    }
+  }
+
+  Widget _buildSettingsTab(String themeModeSetting) {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      children: [
+        // Budget Limit Card
+        _buildSettingsCard(
+          title: "Monthly Budget Limit",
+          subtitle:
+              "Currently set to $_currency${_budgetLimit.toStringAsFixed(2)}",
+          icon: Icons.account_balance_wallet_rounded,
+          iconColor: const Color(0xFF0284C7),
+          trailing: ElevatedButton(
+            onPressed: _setBudgetLimit,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text("Edit", style: TextStyle(fontSize: 13)),
+          ),
+          onTap: _setBudgetLimit,
+        ),
+        const SizedBox(height: 12),
+
+        // Currency Selection Card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color:
+                  _isDark
+                      ? const Color(0x7F334155)
+                      : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0D9488).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.payments_rounded,
+                      color: Color(0xFF0D9488),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      "Default Currency",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    _currency,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children:
+                    ['৳', '\$', '€', '₹', '£'].map((curr) {
+                      final isSelected = _currency == curr;
+                      return ChoiceChip(
+                        label: Text(
+                          curr,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        selected: isSelected,
+                        selectedColor: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.2),
+                        onSelected: (selected) async {
+                          if (selected) {
+                            setState(() => _currency = curr);
+                            await _saveCurrency(curr);
+                          }
+                        },
+                      );
+                    }).toList(),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Theme Mode Card
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color:
+                  _isDark
+                      ? const Color(0x7F334155)
+                      : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF818CF8).withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.palette_rounded,
+                      color: Color(0xFF6366F1),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text(
+                    "Appearance",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  _buildThemeOption(
+                    "system",
+                    "System",
+                    Icons.brightness_auto_rounded,
+                    themeModeSetting,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildThemeOption(
+                    "light",
+                    "Light",
+                    Icons.light_mode_rounded,
+                    themeModeSetting,
+                  ),
+                  const SizedBox(width: 8),
+                  _buildThemeOption(
+                    "dark",
+                    "Dark",
+                    Icons.dark_mode_rounded,
+                    themeModeSetting,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Data Management Card (Reset)
+        _buildSettingsCard(
+          title: "Clear All Transactions",
+          subtitle: "Permanently delete all logged expenses",
+          icon: Icons.delete_sweep_rounded,
+          iconColor: Colors.redAccent,
+          trailing: const Icon(
+            Icons.chevron_right_rounded,
+            color: Colors.grey,
+          ),
+          onTap: _confirmResetAllExpenses,
+        ),
+        const SizedBox(height: 24),
+
+        // About SpendWise
+        Center(
+          child: Column(
+            children: [
+              const Text(
+                "SpendWise v1.0.0",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "Smart Personal Expense Tracker",
+                style: TextStyle(
+                  color: Colors.grey.withValues(alpha: 0.7),
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 90), // Bottom padding for navbar
+      ],
     );
   }
 
@@ -862,11 +1834,12 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
       valueListenable: widget.themeModeNotifier,
       builder: (context, themeModeSetting, child) {
         return Scaffold(
+          extendBody: true,
           resizeToAvoidBottomInset: true,
           appBar: AppBar(
-            title: const Text(
-              "SpendWise",
-              style: TextStyle(fontWeight: FontWeight.bold),
+            title: Text(
+              _getAppBarTitle(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             centerTitle: true,
             actions: [
@@ -878,7 +1851,7 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                           ? Icons.dark_mode_rounded
                           : Icons.light_mode_rounded),
                 ),
-                onPressed: () async {
+                onPressed: () {
                   String nextMode;
                   if (themeModeSetting == 'system') {
                     nextMode = 'light';
@@ -888,25 +1861,23 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                     nextMode = 'system';
                   }
                   widget.themeModeNotifier.value = nextMode;
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setString('themeMode', nextMode);
+                  SharedPreferences.getInstance().then((prefs) {
+                    prefs.setString('themeMode', nextMode);
+                  });
 
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).clearSnackBars();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          nextMode == 'system'
-                              ? 'System Default'
-                              : (nextMode == 'dark'
-                                  ? 'Dark Mode'
-                                  : 'Light Mode'),
-                        ),
-                        duration: const Duration(seconds: 1),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
+                  TopSnackbar.show(
+                    context,
+                    message: nextMode == 'system'
+                        ? 'System Default'
+                        : (nextMode == 'dark'
+                            ? 'Dark Mode'
+                            : 'Light Mode'),
+                    icon: nextMode == 'system'
+                        ? Icons.brightness_auto_rounded
+                        : (nextMode == 'dark'
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded),
+                  );
                 },
                 tooltip: 'Toggle Theme',
               ),
@@ -914,349 +1885,48 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
             ],
           ),
           drawer: _buildDrawer(themeModeSetting),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: _showForm,
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Colors.white,
-            icon: const Icon(Icons.add_rounded),
-            label: const Text(
-              "Add Expense",
-              style: TextStyle(fontWeight: FontWeight.bold),
+          floatingActionButton:
+              _currentTab == 0 || _currentTab == 2
+                  ? FloatingActionButton.extended(
+                    onPressed: _showForm,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text(
+                      "Add Expense",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                  )
+                  : null,
+          body: SafeArea(
+            bottom: false,
+            child: IndexedStack(
+              index: _currentTab,
+              children: [
+                _buildHomeTab(
+                  isWide,
+                  remainingBalance,
+                  progressPercent,
+                  progressColor,
+                ),
+                _buildAnalyticsTab(),
+                _buildFoldersTab(),
+                _buildSettingsTab(themeModeSetting),
+              ],
             ),
           ),
-          body: SafeArea(
-            child:
-                isWide
-                    ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left Column: Balance and Chart Cards
-                        Expanded(
-                          flex: 5,
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                BalanceCard(
-                                  currency: _currency,
-                                  remainingBalance: remainingBalance,
-                                  totalExpense: totalExpense,
-                                  budgetLimit: _budgetLimit,
-                                  progressPercent: progressPercent,
-                                  progressColor: progressColor,
-                                ),
-                                _buildChartCard(),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // Divider line
-                        VerticalDivider(
-                          width: 1,
-                          thickness: 1,
-                          color:
-                              _isDark
-                                  ? const Color(0x4C334155)
-                                  : const Color(0xFFE2E8F0),
-                        ),
-                        // Right Column: Filters and Transactions
-                        Expanded(
-                          flex: 6,
-                          child: CustomScrollView(
-                            slivers: [
-                              SliverToBoxAdapter(
-                                child: FilterSortRow(
-                                  selectedFilter: _selectedFilter,
-                                  selectedSort: _selectedSort,
-                                  categories: categories,
-                                  onFilterChanged: (val) {
-                                    setState(() => _selectedFilter = val);
-                                  },
-                                  onSortChanged: (val) {
-                                    setState(() => _selectedSort = val);
-                                  },
-                                ),
-                              ),
-                              SliverToBoxAdapter(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 20.0,
-                                    right: 20.0,
-                                    top: 16.0,
-                                    bottom: 8.0,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const Text(
-                                        "Transactions",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              Theme.of(context).cardTheme.color,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          border: Border.all(
-                                            color:
-                                                _isDark
-                                                    ? const Color(0x7F334155)
-                                                    : const Color(0xFFE2E8F0),
-                                          ),
-                                        ),
-                                        child: DropdownButtonHideUnderline(
-                                          child: DropdownButton<String>(
-                                            value: _selectedDateFilter,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                              color:
-                                                  Theme.of(
-                                                    context,
-                                                  ).textTheme.bodyLarge?.color,
-                                            ),
-                                            icon: const Padding(
-                                              padding: EdgeInsets.only(
-                                                left: 4.0,
-                                              ),
-                                              child: Icon(
-                                                Icons.calendar_today_rounded,
-                                                size: 14,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                            dropdownColor:
-                                                Theme.of(
-                                                  context,
-                                                ).cardTheme.color,
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                            items:
-                                                [
-                                                      'All Time',
-                                                      'Today',
-                                                      'This Week',
-                                                      'This Month',
-                                                      'This Year',
-                                                    ]
-                                                    .map(
-                                                      (c) => DropdownMenuItem(
-                                                        value: c,
-                                                        child: Text(c),
-                                                      ),
-                                                    )
-                                                    .toList(),
-                                            onChanged: (val) {
-                                              if (val != null) {
-                                                setState(
-                                                  () =>
-                                                      _selectedDateFilter = val,
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              if (_filteredExpenses.isEmpty)
-                                SliverToBoxAdapter(child: _buildEmptyState())
-                              else
-                                SliverList(
-                                  delegate: SliverChildBuilderDelegate((
-                                    context,
-                                    index,
-                                  ) {
-                                    final e = _filteredExpenses[index];
-                                    return TransactionItem(
-                                      expense: e,
-                                      currency: _currency,
-                                      onEdit:
-                                          () => _showForm(
-                                            existingExpense: e,
-                                            index: _expense.indexOf(e),
-                                          ),
-                                      onDelete:
-                                          () => _confirmDeleteExpense(
-                                            _expense.indexOf(e),
-                                          ),
-                                      categoryIcon: _getCategoryIcon(
-                                        e.category,
-                                      ),
-                                      categoryColor: _getCategoryColor(
-                                        e.category,
-                                      ),
-                                    );
-                                  }, childCount: _filteredExpenses.length),
-                                ),
-                              const SliverToBoxAdapter(
-                                child: SizedBox(height: 80),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                    : CustomScrollView(
-                      slivers: [
-                        // 1. Compact Dropdown Filters Row (Placed FIRST, before balance card)
-                        SliverToBoxAdapter(
-                          child: FilterSortRow(
-                            selectedFilter: _selectedFilter,
-                            selectedSort: _selectedSort,
-                            categories: categories,
-                            onFilterChanged: (val) {
-                              setState(() => _selectedFilter = val);
-                            },
-                            onSortChanged: (val) {
-                              setState(() => _selectedSort = val);
-                            },
-                          ),
-                        ),
-                        // 2. Balance Card
-                        SliverToBoxAdapter(
-                          child: BalanceCard(
-                            currency: _currency,
-                            remainingBalance: remainingBalance,
-                            totalExpense: totalExpense,
-                            budgetLimit: _budgetLimit,
-                            progressPercent: progressPercent,
-                            progressColor: progressColor,
-                          ),
-                        ),
-                        // 3. Chart Card
-                        SliverToBoxAdapter(child: _buildChartCard()),
-                        // 4. Transactions Title Header
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              left: 20.0,
-                              right: 20.0,
-                              top: 16.0,
-                              bottom: 8.0,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  "Transactions",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).cardTheme.color,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color:
-                                          _isDark
-                                              ? const Color(0x7F334155)
-                                              : const Color(0xFFE2E8F0),
-                                    ),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: _selectedDateFilter,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.bodyLarge?.color,
-                                      ),
-                                      icon: const Padding(
-                                        padding: EdgeInsets.only(left: 4.0),
-                                        child: Icon(
-                                          Icons.calendar_today_rounded,
-                                          size: 14,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      dropdownColor:
-                                          Theme.of(context).cardTheme.color,
-                                      borderRadius: BorderRadius.circular(12),
-                                      items:
-                                          [
-                                                'All Time',
-                                                'Today',
-                                                'This Week',
-                                                'This Month',
-                                                'This Year',
-                                              ]
-                                              .map(
-                                                (c) => DropdownMenuItem(
-                                                  value: c,
-                                                  child: Text(c),
-                                                ),
-                                              )
-                                              .toList(),
-                                      onChanged: (val) {
-                                        if (val != null) {
-                                          setState(
-                                            () => _selectedDateFilter = val,
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        // 5. Transactions List or Empty State
-                        if (_filteredExpenses.isEmpty)
-                          SliverToBoxAdapter(child: _buildEmptyState())
-                        else
-                          SliverList(
-                            delegate: SliverChildBuilderDelegate((
-                              context,
-                              index,
-                            ) {
-                              final e = _filteredExpenses[index];
-                              return TransactionItem(
-                                expense: e,
-                                currency: _currency,
-                                onEdit:
-                                    () => _showForm(
-                                      existingExpense: e,
-                                      index: _expense.indexOf(e),
-                                    ),
-                                onDelete:
-                                    () => _confirmDeleteExpense(
-                                      _expense.indexOf(e),
-                                    ),
-                                categoryIcon: _getCategoryIcon(e.category),
-                                categoryColor: _getCategoryColor(e.category),
-                              );
-                            }, childCount: _filteredExpenses.length),
-                          ),
-                        // Bottom padding so items don't get covered by FAB
-                        const SliverToBoxAdapter(child: SizedBox(height: 80)),
-                      ],
-                    ),
+          bottomNavigationBar: SmoothBottomNavBar(
+            currentIndex: _currentTab,
+            isDark: _isDark,
+            onTabSelected: (index) {
+              setState(() => _currentTab = index);
+            },
+            onAddPressed: _showForm,
           ),
         );
       },
     );
   }
 }
+
