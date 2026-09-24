@@ -37,8 +37,8 @@ class TopSnackbar {
         ),
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.only(
-          bottom: (screenHeight - topPadding - 110).clamp(
-            50.0,
+          bottom: (screenHeight - topPadding - 160).clamp(
+            40.0,
             double.infinity,
           ),
           left: 16,

@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/folder_list_screen.dart';
 import 'widget/smooth_bottom_nav_bar.dart';
 import 'widget/top_snackbar.dart';
+import 'screens/calculator_screen.dart';
+import 'screens/notes_screen.dart';
 
 class ResponsiveExpenseTracker extends StatefulWidget {
   final ValueNotifier<String> themeModeNotifier;
@@ -829,6 +831,30 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
                           .map((c) => PopupMenuItem(value: c, child: Text(c)))
                           .toList(),
             ),
+          ),
+           ListTile(
+            leading: const Icon(Icons.calculate_rounded),
+            title: const Text('Calculator'),
+            subtitle: const Text('Quick math & arithmetic'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CalculatorScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.note_alt_rounded),
+            title: const Text('Notes'),
+            subtitle: const Text('Budget notes & shopping lists'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const NotesScreen()),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.settings_rounded),
@@ -1770,6 +1796,44 @@ class _ResponsiveExpenseTrackerState extends State<ResponsiveExpenseTracker> {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 12),
+
+        // Quick Calculator Card
+        _buildSettingsCard(
+          title: "Calculator",
+          subtitle: "Perform quick math & expense arithmetic",
+          icon: Icons.calculate_rounded,
+          iconColor: const Color(0xFF0EA5E9),
+          trailing: const Icon(
+            Icons.chevron_right_rounded,
+            color: Colors.grey,
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CalculatorScreen()),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+
+        // Expense Notes Card
+        _buildSettingsCard(
+          title: "Expense Notes",
+          subtitle: "Keep budget notes, shopping lists & reminders",
+          icon: Icons.note_alt_rounded,
+          iconColor: const Color(0xFF10B981),
+          trailing: const Icon(
+            Icons.chevron_right_rounded,
+            color: Colors.grey,
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NotesScreen()),
+            );
+          },
         ),
         const SizedBox(height: 12),
 
